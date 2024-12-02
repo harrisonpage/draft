@@ -20,37 +20,37 @@ No support for packaging external files, images, deployment or hosting. Just a s
 
 ## Environment Variables
 
-Run `build.sh` or otherwise set `DRAFT_BUILD_VERSION` and run `make`.
+Run `build.sh`. (Sets `DRAFT_BUILD_VERSION` and runs `make`.)
 
 ## Configuration
 
-Below are descriptions of each field in `config.yaml`
+Descriptions of each field in `config.yaml`:
 
-- **`input_dir`**: Specifies the directory containing Markdown source files to process.
+- **`input_dir`**: Directory containing Markdown source files
 
-- **`templates_dir`**: Specifies the directory containing HTML template files used for generating output.
+- **`templates_dir`**: Directory containing HTML template files
 
-- **`output_dir`**: Defines the directory where the generated HTML files will be written.
+- **`output_dir`**: Directory where generated HTML files will be written
 
-- **`index_template_path`**: Path to the HTML template used for the main index page.
+- **`index_template_path`**: Path to HTML template used for the main index page
 
-- **`tags_index_template_path`**: Path to the HTML template used for the tags index page.
+- **`tags_index_template_path`**: Path to HTML template used for the tags index page
 
-- **`tag_page_template_path`**: Path to the HTML template used for individual tag pages.
+- **`tag_page_template_path`**: Path to HTML template used for individual tag pages
 
-- **`author`**: Name of the author to display in the generated pages.
+- **`author`**: Author name, displayed in generated pages
 
-- **`blog_name`**: The name of the blog, displayed in metadata or header sections.
+- **`blog_name`**: Blog name, displayed in metadata and header
 
-- **`copyright`**: Copyright notice to include in the generated pages.
+- **`copyright`**: Copyright notice, displayed in metadata and footer
 
-- **`language`**: The language identifier for the generated pages in the format `language-region` (e.g., `en-us` for English, United States).
+- **`language`**: Language identifier for the generated pages in the format `language-region` (e.g., `en-us` for English, United States)
 
-- **`css_files`**: A list of URLs or file paths for CSS stylesheets to include in the generated pages.
+- **`css_files`**: List of URLs or file paths for CSS stylesheets to include
 
-- **`js_files`**: A list of URLs or file paths for JavaScript files to include in the generated pages.
+- **`js_files`**: List of URLs or file paths for JavaScript files to include
 
-- **`url`**: The root URL of the website. This is used for generating absolute links in the output.
+- **`url`**: Root URL of the website, used for generating absolute links
 
 ## Usage
 
