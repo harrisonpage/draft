@@ -19,7 +19,6 @@
         {{- end }}
     {{- end }}
     <meta name="robots" content="index,follow"/>
-    <script defer data-domain="harrison.page" src="https://plausible.toad.cloud/js/script.js"></script>
 </head>
 <body>
     <header>
