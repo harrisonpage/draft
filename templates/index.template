@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{ .Title }}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta charset="utf-8" />
+    <meta name="updated" content="{{ .Now }}"/>
+    <link rel="stylesheet" href="https://fonts.xz.style/serve/inter.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@exampledev/new.css@1.1.2/new.min.css">
+    <link rel="stylesheet" href="https://newcss.net/theme/terminal.css">
+</head>
+<body>
+    <header>
+        <h1>{{ .BlogName }} – All Posts</h1>
+    </header>
+    <main>
+        <ul>
+        {{ range .Posts }}
+            <li>
+                <h2><span>{{ .Favicon }}</span> <a href="{{ .Link }}/">{{ .Title }}</a></h2>
+                <p><strong>{{ .Published }}</strong></p>
+                <p>{{ .Description }}</p>
+                <p><img src="{{ .Image }}" alt="{{ .Title }}" style="max-width:200px;"></p>
+            </li>
+        {{ end }}
+        </ul>
+    </main>
+
+    <footer>
+        <a href="/tags/">Tags</a> | <a href="/rss.xml">RSS</a> |
+        &copy; 2024 | Version: {{ .Version }}
+    </footer>
+</body>
+</html>
+

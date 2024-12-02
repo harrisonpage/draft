@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{ .Title }} – {{ .Key }}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="https://fonts.xz.style/serve/inter.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@exampledev/new.css@1.1.2/new.min.css">
+    <link rel="stylesheet" href="https://newcss.net/theme/terminal.css">
+</head>
+<body>
+    <header>
+        <h1>Posts Tagged "{{ .Key }}"</h1>
+        <p><a href="../index.html">← Back to Tags</a></p>
+    </header>
+    <main>
+        <ul>
+        {{ range $tag, $posts := .Tags }}
+            <li>
+                <h2><a href="./{{ $tag }}/index.html">{{ $tag }}</a></h2>
+                <p>{{ len $posts }} post(s) tagged with "{{ $tag }}"</p>
+                <ul>
+                {{ range $posts }}
+                    <li><a href="../{{ .Link }}.html">{{ .Title }}</a></li>
+                {{ end }}
+                </ul>
+            </li>
+        {{ end }}
+        </ul>
+    </main>
+
+    <footer>
+        <p>&copy; 2024</p>
+    </footer>
+</body>
+</html>
+

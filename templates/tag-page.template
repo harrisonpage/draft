@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Posts Tagged "{{ .Key }}"</title>
+</head>
+<body>
+    <header>
+        <h1>Posts Tagged "{{ .Key }}"</h1>
+        <p><a href="../index.html">← Back to Tags</a></p>
+    </header>
+    <main>
+        <ul>
+        {{ range .Value }}
+            <li>
+                <h2><a href="../../{{ .Link }}.html">{{ .Title }}</a></h2>
+                <p>{{ .Description }}</p>
+                <p><strong>Published:</strong> {{ .Published }}</p>
+                <p><img src="{{ .Image }}" alt="{{ .Title }}" style="max-width:200px;"></p>
+                <p><span>{{ .Favicon }}</span></p>
+            </li>
+        {{ end }}
+        </ul>
+    </main>
+    <footer>
+        <p>&copy; 2024</p>
+    </footer>
+</body>
+</html>

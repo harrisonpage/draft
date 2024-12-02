@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Tags</title>
+</head>
+<body>
+    <header>
+        <h1>All Tags</h1>
+        <p><a href="../index.html">← Back to Posts Index</a></p>
+    </header>
+    <main>
+        <ul>
+        {{ range $tag, $posts := .Tags }}
+            <li>
+                <h2><a href="./{{ $tag }}/index.html">{{ $tag }}</a></h2>
+                <p>{{ len $posts }} post(s) tagged with "{{ $tag }}"</p>
+            </li>
+        {{ end }}
+        </ul>
+    </main>
+    <footer>
+        <p>&copy; 2024</p>
+    </footer>
+</body>
+</html>
