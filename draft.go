@@ -3,7 +3,6 @@ package main
 import (
 	"bufio"
 	"encoding/xml"
-	"flag"
 	"fmt"
 	"html/template"
 	"io/ioutil"
@@ -16,25 +15,27 @@ import (
 	"github.com/gomarkdown/markdown"
 	"github.com/gomarkdown/markdown/html"
 	"github.com/gomarkdown/markdown/parser"
+	"gopkg.in/yaml.v3"
 )
 
 var Version string
 
 type Config struct {
-	InputDir              string
-	TemplatesDir          string
-	OutputDir             string
-	IndexTemplatePath     string
-	TagsIndexTemplatePath string
-	TagPageTemplatePath   string
-	Author                string
-	BlogName              string
-	Copyright             string
-	Language              string
-	CSSFiles              []string
-	JSFiles               []string
-	URL                   string
+	InputDir              string   `yaml:"input_dir"`
+	TemplatesDir          string   `yaml:"templates_dir"`
+	OutputDir             string   `yaml:"output_dir"`
+	IndexTemplatePath     string   `yaml:"index_template_path"`
+	TagsIndexTemplatePath string   `yaml:"tags_index_template_path"`
+	TagPageTemplatePath   string   `yaml:"tag_page_template_path"`
+	Author                string   `yaml:"author"`
+	BlogName              string   `yaml:"blog_name"`
+	Copyright             string   `yaml:"copyright"`
+	Language              string   `yaml:"language"`
+	CSSFiles              []string `yaml:"css_files"`
+	JSFiles               []string `yaml:"js_files"`
+	URL                   string   `yaml:"url"`
 }
+
 
 type PostMetadata struct {
 	Title       string
@@ -47,14 +48,12 @@ type PostMetadata struct {
 	Favicon     string
 }
 
-// RSSFeed represents the structure of an RSS feed.
 type RSSFeed struct {
 	XMLName xml.Name   `xml:"rss"`
 	Version string     `xml:"version,attr"`
 	Channel RSSChannel `xml:"channel"`
 }
 
-// RSSChannel represents the channel element in the RSS feed.
 type RSSChannel struct {
 	Title       string    `xml:"title"`
 	Link        string    `xml:"link"`
@@ -64,13 +63,27 @@ type RSSChannel struct {
 	Items       []RSSItem `xml:"item"`
 }
 
-// RSSItem represents an individual item in the RSS feed.
 type RSSItem struct {
 	Title       string `xml:"title"`
 	Link        string `xml:"link"`
 	Description string `xml:"description"`
 	Author      string `xml:"author,omitempty"`
 	PubDate     string `xml:"pubDate"`
+}
+
+func loadConfig(filename string) (*Config, error) {
+	file, err := os.Open(filename)
+	if err != nil {
+		return nil, fmt.Errorf("failed to open config file: %w", err)
+	}
+	defer file.Close()
+
+	var config Config
+	decoder := yaml.NewDecoder(file)
+	if err := decoder.Decode(&config); err != nil {
+		return nil, fmt.Errorf("failed to decode config file: %w", err)
+	}
+	return &config, nil
 }
 
 func publish(md []byte) []byte {
@@ -377,54 +390,18 @@ func GenerateRSSFeed(config Config, posts []PostMetadata) error {
 }
 
 func main() {
-	var cssFiles, jsFiles []string
-
-	inputDir := flag.String("input", "", "Directory containing Markdown files")
-	templatesDir := flag.String("templates", "templates", "Directory containing HTML templates")
-	outputDir := flag.String("output", "", "Directory to write generated HTML files")
-	indexTemplatePath := flag.String("index", "", "Path to the index HTML template")
-	tagsIndexTemplatePath := flag.String("tags-index", "", "Path to the tags index HTML template")
-	tagPageTemplatePath := flag.String("tag-page", "", "Path to the tag page HTML template")
-	author := flag.String("author", "Anonymous", "Author name for generated pages")
-	blogName := flag.String("blog-name", "Example Blog", "Name of Blog")
-	copyright := flag.String("copyright", "Copyright Notice Goes Here", "Copyright notice for generated pages")
-	language := flag.String("language", "en-us", "Language in this format: en-us")
-	flag.Var((*arrayFlag)(&cssFiles), "css", "Specify CSS files to include (repeatable)")
-	flag.Var((*arrayFlag)(&jsFiles), "js", "Specify JS files to include (repeatable)")
-	url := flag.String("url", "https://example.com", "Root URL without forward slash")
-	flag.Parse()
-
-	if *inputDir == "" || *outputDir == "" || *indexTemplatePath == "" || *tagsIndexTemplatePath == "" || *tagPageTemplatePath == "" {
-		log.Fatalf("Please specify all required arguments")
+	if len(os.Args) < 2 {
+		fmt.Println("Usage: draft [config.yaml]")
+		os.Exit(1)
 	}
 
-	config := Config{
-		InputDir:              *inputDir,
-		TemplatesDir:          *templatesDir,
-		OutputDir:             *outputDir,
-		IndexTemplatePath:     *indexTemplatePath,
-		TagsIndexTemplatePath: *tagsIndexTemplatePath,
-		TagPageTemplatePath:   *tagPageTemplatePath,
-		Author:                *author,
-		BlogName:              *blogName,
-		Copyright:             *copyright,
-		Language:              *language,
-		CSSFiles:              cssFiles,
-		JSFiles:               jsFiles,
-		URL:                   *url,
+	configPath := os.Args[1]
+	config, err := loadConfig(configPath)
+	if err != nil {
+		fmt.Printf("Error loading configuration: %v\n", err)
+		os.Exit(1)
 	}
 
 	fmt.Printf("📗 Draft version %s\n", Version)
-	processMarkdownFiles(config)
-}
-
-type arrayFlag []string
-
-func (i *arrayFlag) String() string {
-	return strings.Join(*i, ",")
-}
-
-func (i *arrayFlag) Set(value string) error {
-	*i = append(*i, value)
-	return nil
+	processMarkdownFiles(*config)
 }

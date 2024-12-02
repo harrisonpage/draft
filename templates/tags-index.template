@@ -1,7 +1,24 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Tags</title>
+    <title>{{ .Headers.title }} – Tags</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta charset="utf-8" />
+    <meta name="author" content="{{ .Author }}"/>
+    <meta name="copyright" content="{{ .Copyright }}"/>
+    <meta name="revision" content="draft/{{ .Version }}"/>
+    <meta name="updated" content="{{ .Now }}"/>
+    {{- if .CSSFiles }}
+        {{- range .CSSFiles }}
+    <link rel="stylesheet" href="{{ . }}">
+        {{- end }}
+    {{- end }}
+    {{- if .JSFiles }}
+        {{- range .JSFiles }}
+    <script src="{{ . }}"></script>
+        {{- end }}
+    {{- end }}
+    <meta name="robots" content="index,follow"/>
 </head>
 <body>
     <header>
@@ -19,7 +36,7 @@
         </ul>
     </main>
     <footer>
-        <p>&copy; 2024</p>
+        <a href="/tags/">Tags</a> |<a href="/rss.xml">RSS</a> | &copy; {{ .Copyright }} | Built with <a href="https://github.com/harrisonpage/draft">Draft</a> Version {{ .Version }}
     </footer>
 </body>
 </html>

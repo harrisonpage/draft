@@ -1,0 +1,15 @@
+input_dir: "./posts"
+templates_dir: "./templates"
+output_dir: "/var/www/html"
+index_template_path: "./templates/index.template"
+tags_index_template_path: "./templates/tags-index.template"
+tag_page_template_path: "./templates/tag-page.template"
+author: "Your Name Here"
+blog_name: "Generic Blog Name"
+copyright: "2024"
+language: "en-us"
+css_files:
+  - "https://example.com/stylesheet.css"
+js_files:
+  - "https://example.com/script.js"
+url: "https://example.com"

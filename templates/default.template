@@ -35,8 +35,7 @@
             {{ range .Tags }}
                 <a href="../tags/{{ . }}/index.html">{{ . }}</a>
             {{ end }}
-        | {{ end }} | <a href="/rss.xml">RSS</a> | 
-        &copy; 2024 | Version {{ .Version }}
+        | {{ end }} | <a href="/rss.xml">RSS</a> | &copy; {{ .Copyright }} | Built with <a href="https://github.com/harrisonpage/draft">Draft</a> Version {{ .Version }}
         </p>
     </footer>
 </body>
