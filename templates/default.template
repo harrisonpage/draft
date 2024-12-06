@@ -33,9 +33,9 @@
         <p>{{- if .Tags }}
         Tags:
             {{ range .Tags }}
-                <a href="../tags/{{ . }}/index.html">{{ . }}</a>
+                <a href="{{ .URL }}">{{ .TagName }}</a>
             {{ end }}
-        | {{ end }} | <a href="/rss.xml">RSS</a> | &copy; {{ .Copyright }} | Built with <a href="https://github.com/harrisonpage/draft">Draft</a> Version {{ .Version }}
+        | {{ end }} <a href="/rss.xml">RSS</a> | &copy; {{ .Copyright }} | Built with <a href="https://github.com/harrisonpage/draft">Draft</a> Version {{ .Version }}
         </p>
     </footer>
 </body>

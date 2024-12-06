@@ -38,6 +38,10 @@ type Config struct {
 	BasePath              string   `yaml:"base_path"`
 }
 
+type Tag struct {
+	TagName     string
+	URL         string
+}
 
 type Post struct {
 	Title       string
@@ -46,7 +50,7 @@ type Post struct {
 	URL         string
 	Published   string
 	Description string
-	Tags        []string
+	Tags        []Tag
 	Image       string
 	Favicon     string
 }
@@ -190,9 +194,11 @@ func processMarkdownFiles(config Config) {
 			log.Fatalf("Validation error for file '%s': %v", filePath, err)
 		}
 
-		tags := strings.Split(headers["tags"], ",")
-		for i, tag := range tags {
-			tags[i] = strings.TrimSpace(tag)
+		tagStrings := strings.Split(headers["tags"], ",")
+		var tags []Tag
+		for _, tag := range tagStrings {
+			tag = strings.TrimSpace(tag)
+			tags = append(tags, Tag{TagName:tag, URL:BuildTagLink(config, tag)})
 		}
 
 		post := Post{
@@ -207,7 +213,7 @@ func processMarkdownFiles(config Config) {
 		}
 		posts = append(posts, post)
 
-		for _, tag := range tags {
+		for _, tag := range tagStrings {
 			tagIndex[tag] = append(tagIndex[tag], post)
 		}
 
@@ -364,6 +370,13 @@ func BuildRootLink(config Config) string {
 		return fmt.Sprintf("%s/%s/", config.URL, config.BasePath)
 	}
 	return fmt.Sprintf("%s/", config.URL)
+}
+
+func BuildTagLink(config Config, tag string) string {
+	if config.BasePath != "" {
+		return fmt.Sprintf("/%s/tags/%s/", config.BasePath, tag)
+	}
+	return fmt.Sprintf("/tags/%s/", tag)
 }
 
 func GenerateRSSFeed(config Config, posts []Post) error {
