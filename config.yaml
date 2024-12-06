@@ -14,3 +14,4 @@ js_files:
   - "https://example.com/script.js"
 url: "https://example.com"
 base_path: "draft"
+back_label: "Back"

@@ -23,7 +23,7 @@
 </head>
 <body>
     <header>
-        <h1>{{ .Config.BlogName }} – All Posts</h1>
+        <h1>{{ .Config.BlogName }} – Index</h1>
     </header>
     <main>
         <ul>

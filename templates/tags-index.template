@@ -23,8 +23,9 @@
 </head>
 <body>
     <header>
-        <h1>All Tags</h1>
-        <p><a href="../index.html">&lt;&lt;</a></p>
+        <h1>{{ .Config.BlogName }}</h1>
+        <h2>All Tags</h2>
+        <p><a href="../index.html">{{ .Config.BackLabel }}</a></p>
     </header>
     <main>
         <ul>
@@ -37,7 +38,7 @@
         </ul>
     </main>
     <footer>
-        <a href="{{ .Config.Links.Tags }}">Tags</a> |<a href="{{ .Config.Links.RSS }}">RSS</a> | &copy; {{ .Config.Copyright }} | Built with <a href="https://github.com/harrisonpage/draft">Draft</a> Version {{ .Version }}
+        <a href="{{ .Config.Links.Tags }}">Tags</a> | <a href="{{ .Config.Links.RSS }}">RSS</a> | &copy; {{ .Config.Copyright }} | Built with <a href="https://github.com/harrisonpage/draft">Draft</a> Version {{ .Version }}
     </footer>
 </body>
 </html>

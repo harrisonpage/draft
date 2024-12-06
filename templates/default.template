@@ -24,7 +24,7 @@
 <body>
     <header>
         <h1>{{ .Headers.title }}</h1>
-        <p><a href="../">&lt;&lt;</a></p>
+        <p><a href="../">{{ .Config.BackLabel }}</a></p>
         <p>Published: {{ .Headers.published }}</p>
     </header>
     <main>

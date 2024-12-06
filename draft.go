@@ -32,6 +32,7 @@ type Config struct {
 	BlogName              string   `yaml:"blog_name"`
 	Copyright             string   `yaml:"copyright"`
 	Language              string   `yaml:"language"`
+	BackLabel             string   `yaml:"back_label"`
 	CSSFiles              []string `yaml:"css_files"`
 	JSFiles               []string `yaml:"js_files"`
 	URL                   string   `yaml:"url"`
@@ -101,7 +102,6 @@ func loadConfig(filename string) (*Config, error) {
 	config.Links.RSS = BuildRSSLink(config)
 	config.Links.Tags = BuildTagsLink(config)
 
-	fmt.Printf("RSS link = %v", config.Links.RSS)
 	return &config, nil
 }
 
