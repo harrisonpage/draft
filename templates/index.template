@@ -1,29 +1,9 @@
 <!DOCTYPE html>
 <html>
-<head>
-    <title>{{ .Headers.title }}</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta charset="utf-8" />
-    <meta name="author" content="{{ .Config.Author }}"/>
-    <meta name="copyright" content="{{ .Config.Copyright }}"/>
-    <meta name="revision" content="draft/{{ .Version }}"/>
-    <meta name="updated" content="{{ .Now }}"/>
-    <link rel="alternate" type="application/rss+xml" title="{{ .Title }}" href="{{ .Config.Links.RSS }}"/>
-    {{- if .Config.CSSFiles }}
-        {{- range .Config.CSSFiles }}
-    <link rel="stylesheet" href="{{ . }}">
-        {{- end }}
-    {{- end }}
-    {{- if .Config.JSFiles }}
-        {{- range .Config.JSFiles }}
-    <script src="{{ . }}"></script>
-        {{- end }}
-    {{- end }}
-    <meta name="robots" content="index,follow"/>
-</head>
+{{ template "header" . }}
 <body>
     <header>
-        <h1>{{ .Config.BlogName }} – Index</h1>
+        <h1>{{ .Config.BlogName }}</h1>
     </header>
     <main>
         <ul>
@@ -37,10 +17,7 @@
         {{ end }}
         </ul>
     </main>
-
-    <footer>
-        <a href="{{ .Config.Links.Tags }}">Tags</a> | <a href="{{ .Config.Links.RSS }}">RSS</a> | &copy; {{ .Config.Copyright }} | Built with <a href="https://github.com/harrisonpage/draft">Draft</a> Version {{ .Version }}
-    </footer>
+    {{ template "footer" . }}
 </body>
 </html>
 

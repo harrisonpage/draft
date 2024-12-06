@@ -44,6 +44,8 @@ Descriptions of each field in `config.yaml`:
 
 - **`copyright`**: Copyright notice, displayed in metadata and footer
 
+- **`description`**: Brief description, one paragraph or so, used in link unfurls
+
 - **`language`**: Language identifier for the generated pages in the format `language-region` (e.g., `en-us` for English, United States)
 
 - **`css_files`**: List of URLs or file paths for CSS stylesheets to include
@@ -53,6 +55,8 @@ Descriptions of each field in `config.yaml`:
 - **`url`**: Root URL of the website, used for generating absolute links
 
 - **`base_path`**: Optional prefix for all URLs, just `blog` for a URL like https://www.example.com/blog/
+
+- **`back_label`**: Label for back links
 
 ## Usage
 

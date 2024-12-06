@@ -1,0 +1,47 @@
+{{define "header"}}
+<head>
+    <title>{{ .Labels.Title }}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <meta charset="utf-8" />
+    <meta name="author" content="{{ .Config.Author }}"/>
+    <meta name="copyright" content="{{ .Config.Copyright }}"/>
+    <meta name="revision" content="{{ .Version }}"/>
+    <meta name="generator" content="draft/{{ .Version }}"/>
+    <meta name="updated" content="{{ .Now }}"/>
+    <link rel="canonical" href="{{ .Canonical }}">
+    <link rel="alternate" type="application/rss+xml" title="{{ .Config.BlogName }}" href="{{ .Links.RSS }}"/>
+    {{- if .Config.CSSFiles }}
+        {{- range .Config.CSSFiles }}
+    <link rel="stylesheet" href="{{ . }}">
+        {{- end }}
+    {{- end }}
+    {{- if .Config.JSFiles }}
+        {{- range .Config.JSFiles }}
+    <script src="{{ . }}"></script>
+        {{- end }}
+    {{- end }}
+    <meta name="robots" content="index,follow"/>
+    {{- if .Unfurl }}
+    <meta property="og:url" content="{{ .Unfurl.URL }}" />
+    <meta property="og:title" content="{{ .Unfurl.Title }}" />
+    <meta property="og:description" content="{{ .Unfurl.Description }}" />
+    <meta property="og:site_name" content="{{ .Unfurl.SiteName }}" />
+    <meta property="og:locale" content="en_US" />
+    {{- if .Unfurl.Tags }}
+    <meta name="twitter:label1" content="Tags" />
+    <meta name="twitter:data1" content="{{ .Unfurl.Tags }}" />
+    {{- end }}
+    {{- if .Unfurl.Author }}
+    <meta name="twitter:label2" content="Author" />
+    <meta name="twitter:data2" content="{{ .Unfurl.Author }}" />
+    {{- end }}
+    <meta name="twitter:card" content="summary_large_image" />
+    {{- end }}
+</head>
+{{end}}
+
+{{define "footer"}}
+    <footer>
+        <a href="{{ .Links.Tags }}">Tags</a> | <a href="{{ .Links.RSS }}">RSS</a> | &copy; {{ .Config.Copyright }} | Built with <a href="https://github.com/harrisonpage/draft">Draft</a> Version {{ .Version }}
+    </footer>
+{{end}}

@@ -6,6 +6,7 @@ tags_index_template_path: "./templates/tags-index.template"
 tag_page_template_path: "./templates/tag-page.template"
 author: "Your Name Here"
 blog_name: "Generic Blog Name"
+description: "This is my blog. There are many like it, but this one is mine"
 copyright: "2024"
 language: "en-us"
 css_files:

@@ -21,6 +21,9 @@ import (
 var Version string
 var BuildDate string
 
+/*
+ * config.yaml
+ */
 type Config struct {
 	InputDir              string   `yaml:"input_dir"`
 	TemplatesDir          string   `yaml:"templates_dir"`
@@ -30,6 +33,7 @@ type Config struct {
 	TagPageTemplatePath   string   `yaml:"tag_page_template_path"`
 	Author                string   `yaml:"author"`
 	BlogName              string   `yaml:"blog_name"`
+	Description           string   `yaml:"description"`
 	Copyright             string   `yaml:"copyright"`
 	Language              string   `yaml:"language"`
 	BackLabel             string   `yaml:"back_label"`
@@ -37,7 +41,19 @@ type Config struct {
 	JSFiles               []string `yaml:"js_files"`
 	URL                   string   `yaml:"url"`
 	BasePath              string   `yaml:"base_path"`
-	Links                 Links
+}
+
+type Labels struct {
+	Title                 string
+}
+
+type Unfurl struct {
+	Title                 string
+	URL                   string
+	Author                string
+	Description           string
+	SiteName              string
+	Tags                  string
 }
 
 type Links struct {
@@ -98,9 +114,6 @@ func loadConfig(filename string) (*Config, error) {
 	if err := decoder.Decode(&config); err != nil {
 		return nil, fmt.Errorf("failed to decode config file: %w", err)
 	}
-
-	config.Links.RSS = BuildRSSLink(config)
-	config.Links.Tags = BuildTagsLink(config)
 
 	return &config, nil
 }
@@ -190,6 +203,11 @@ func processMarkdownFiles(config Config) {
 	tagIndex := make(map[Tag][]Post)
 	now := time.Now().Format("January 2, 2006 at 3:04 PM")
 
+	links := Links{
+		RSS:        BuildRSSLink(config),
+		Tags:       BuildTagsLink(config),
+	}
+
 	for _, file := range files {
 		if file.IsDir() {
 			continue
@@ -208,15 +226,32 @@ func processMarkdownFiles(config Config) {
 
 		tagStrings := strings.Split(headers["tags"], ",")
 		var tags []Tag
+		var tagsRaw []string
 		for _, tag := range tagStrings {
 			tag = strings.TrimSpace(tag)
 			tags = append(tags, Tag{TagName:tag, URL:BuildTagLink(config, tag)})
+			tagsRaw = append(tagsRaw, tag)
+		}
+
+		labels := Labels{
+			Title:       headers["title"],
+		}
+
+		url := BuildPostLink(config, headers["link"])
+
+		unfurl := Unfurl{
+			Title:       headers["title"],
+			URL:         url,
+			Author:      headers["author"],
+			Description: headers["description"],
+			SiteName:    config.BlogName,
+			Tags:        strings.Join(tagsRaw, ","),
 		}
 
 		post := Post{
 			Title:       headers["title"],
 			Link:        headers["link"],
-			URL:         BuildPostLink(config, headers["link"]),
+			URL:         url,
 			Published:   headers["published"],
 			Description: headers["description"],
 			Tags:        tags,
@@ -231,7 +266,7 @@ func processMarkdownFiles(config Config) {
 
 		templateFile := headers["template"]
 		templatePath := filepath.Join(config.TemplatesDir, templateFile)
-		tmpl, err := template.ParseFiles(templatePath)
+		tmpl, err := template.ParseFiles(templatePath, filepath.Join(config.TemplatesDir, "shared.template"))
 		if err != nil {
 			log.Fatalf("Failed to parse template '%s': %v", templateFile, err)
 		}
@@ -240,11 +275,15 @@ func processMarkdownFiles(config Config) {
 
 		data := map[string]interface{}{
 			"Config":    config,
-			"Headers":   headers,
+			"Labels":    labels,
+			"Unfurl":    unfurl,
+			"Post":      post,
 			"Content":   template.HTML(htmlContent),
 			"Tags":      tags,
 			"Version":   Version,
 			"Now":       now,
+			"Canonical": url,
+			"Links":     links,
 		}
 
 		postDir := filepath.Join(config.OutputDir, headers["link"])
@@ -266,13 +305,13 @@ func processMarkdownFiles(config Config) {
 		fmt.Printf("📘 Post: %s\n", headers["link"])
 	}
 
-	generateIndexHTML(config, posts, now)
-	generateTagsHTML(config, tagsOutputDir, tagIndex, now)
+	generateIndexHTML(config, posts, links, now)
+	generateTagsHTML(config, tagsOutputDir, tagIndex, links, now)
 	GenerateRSSFeed(config, posts)
 }
 
-func generateIndexHTML(config Config, posts []Post, now string) {
-	tmpl, err := template.ParseFiles(config.IndexTemplatePath)
+func generateIndexHTML(config Config, posts []Post, links Links, now string) {
+	tmpl, err := template.ParseFiles(config.IndexTemplatePath, filepath.Join(config.TemplatesDir, "shared.template"))
 	if err != nil {
 		log.Fatalf("Failed to parse index template '%s': %v", config.IndexTemplatePath, err)
 	}
@@ -284,11 +323,28 @@ func generateIndexHTML(config Config, posts []Post, now string) {
 	}
 	defer indexFile.Close()
 
+	labels := Labels{
+		Title:       config.BlogName,
+	}
+
+	url := BuildRootLink(config)
+
+	unfurl := Unfurl{
+		Title:       config.BlogName,
+		URL:         url,
+		Description: config.Description,
+		SiteName:    config.BlogName,
+	}
+
 	data := map[string]interface{}{
 		"Config":    config,
+		"Labels":    labels,
 		"Posts":     reverse(posts),
 		"Version":   Version,
 		"Now":       now,
+		"Canonical": url,
+		"Links":     links,
+		"Unfurl":    unfurl,
 	}
 
 	if err := tmpl.Execute(indexFile, data); err != nil {
@@ -298,8 +354,8 @@ func generateIndexHTML(config Config, posts []Post, now string) {
 	fmt.Printf("📙 Index: %s\n", indexFilePath)
 }
 
-func generateTagsHTML(config Config, tagsOutputDir string, tagIndex map[Tag][]Post, now string) {
-	tmpl, err := template.ParseFiles(config.TagsIndexTemplatePath)
+func generateTagsHTML(config Config, tagsOutputDir string, tagIndex map[Tag][]Post, links Links, now string) {
+	tmpl, err := template.ParseFiles(config.TagsIndexTemplatePath, filepath.Join(config.TemplatesDir, "shared.template"))
 	if err != nil {
 		log.Fatalf("Failed to parse tags index template '%s': %v", config.TagsIndexTemplatePath, err)
 	}
@@ -311,11 +367,26 @@ func generateTagsHTML(config Config, tagsOutputDir string, tagIndex map[Tag][]Po
 	}
 	defer indexFile.Close()
 
+	labels := Labels{
+		Title:       config.BlogName + " Tags",
+	}
+
+	unfurl := Unfurl{
+		Title:       config.BlogName,
+		URL:         links.Tags,
+		Description: config.BlogName + ": Tags",
+		SiteName:    config.BlogName,
+	}
+
 	data := map[string]interface{}{
 		"Config":    config,
+		"Labels":    labels,
 		"Tags":      tagIndex,
 		"Version":   Version,
 		"Now":       now,
+		"Canonical": links.Tags,
+		"Links":     links,
+		"Unfurl":    unfurl,
 	}
 
 	if err := tmpl.Execute(indexFile, data); err != nil {
@@ -323,7 +394,7 @@ func generateTagsHTML(config Config, tagsOutputDir string, tagIndex map[Tag][]Po
 	}
 	fmt.Printf("📓 Tag Index: %s\n", tagsIndexFilePath)
 
-	tagPageTemplate, err := template.ParseFiles(config.TagPageTemplatePath)
+	tagPageTemplate, err := template.ParseFiles(config.TagPageTemplatePath, filepath.Join(config.TemplatesDir, "shared.template"))
 	if err != nil {
 		log.Fatalf("Failed to parse tag page template '%s': %v", config.TagPageTemplatePath, err)
 	}
@@ -341,12 +412,29 @@ func generateTagsHTML(config Config, tagsOutputDir string, tagIndex map[Tag][]Po
 		}
 		defer tagFile.Close()
 
+		labels := Labels{
+			Title:       config.BlogName + " Tags",
+		}
+
+		url := BuildTagLink(config, tag.TagName)
+
+		unfurl := Unfurl{
+			Title:       config.BlogName,
+			URL:         url,
+			Description: config.BlogName + ": Posts tagged " + tag.TagName,
+			SiteName:    config.BlogName,
+		}
+
 		data := map[string]interface{}{
 			"Config":    config,
+			"Labels":    labels,
 			"Key":       tag.TagName,
 			"Value":     posts,
 			"Version":   Version,
 			"Now":       now,
+			"Canonical": url,
+			"Links":     links,
+			"Unfurl":    unfurl,
 		}
 
 		if err := tagPageTemplate.Execute(tagFile, data); err != nil {
@@ -372,23 +460,23 @@ func BuildRootLink(config Config) string {
 
 func BuildTagLink(config Config, tag string) string {
 	if config.BasePath != "" {
-		return fmt.Sprintf("/%s/tags/%s/", config.BasePath, tag)
+		return fmt.Sprintf("%s/%s/tags/%s/", config.URL, config.BasePath, tag)
 	}
-	return fmt.Sprintf("/tags/%s/", tag)
+	return fmt.Sprintf("%s/tags/%s/", config.URL, tag)
 }
 
 func BuildTagsLink(config Config) string {
 	if config.BasePath != "" {
-		return fmt.Sprintf("/%s/tags/", config.BasePath)
+		return fmt.Sprintf("%s/%s/tags/", config.URL, config.BasePath)
 	}
-	return fmt.Sprintf("/tags/")
+	return fmt.Sprintf("%s/tags/", config.URL)
 }
 
 func BuildRSSLink(config Config) string {
 	if config.BasePath != "" {
-		return fmt.Sprintf("/%s/rss.xml", config.BasePath)
+		return fmt.Sprintf("%s/%s/rss.xml", config.URL, config.BasePath)
 	}
-	return fmt.Sprintf("/rss.xml")
+	return fmt.Sprintf("%s/rss.xml", config.URL)
 }
 
 func GenerateRSSFeed(config Config, posts []Post) error {
