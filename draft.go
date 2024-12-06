@@ -28,6 +28,7 @@ type Config struct {
 	InputDir              string   `yaml:"input_dir"`
 	TemplatesDir          string   `yaml:"templates_dir"`
 	OutputDir             string   `yaml:"output_dir"`
+	BadgesDir             string   `yaml:"badges_dir"`
 	IndexTemplatePath     string   `yaml:"index_template_path"`
 	TagsIndexTemplatePath string   `yaml:"tags_index_template_path"`
 	TagPageTemplatePath   string   `yaml:"tag_page_template_path"`
@@ -36,12 +37,21 @@ type Config struct {
 	Description           string   `yaml:"description"`
 	Copyright             string   `yaml:"copyright"`
 	Language              string   `yaml:"language"`
+	Locale                string   `yaml:"locale"`
 	BackLabel             string   `yaml:"back_label"`
 	CSSFiles              []string `yaml:"css_files"`
 	JSFiles               []string `yaml:"js_files"`
 	Pages                 []Page   `yaml:"pages"`
 	URL                   string   `yaml:"url"`
 	BasePath              string   `yaml:"base_path"`
+	Badges                []Badge  `yaml:"badges"`
+}
+
+type Badge struct {
+	Title string
+	URL  string
+	Icon string
+	ID string
 }
 
 type Page struct {
@@ -61,6 +71,7 @@ type Unfurl struct {
 	Description string
 	SiteName    string
 	Tags        string
+	Locale      string
 }
 
 type Links struct {
@@ -193,6 +204,20 @@ func reverse(posts []Post) []Post {
 }
 
 func processMarkdownFiles(config Config) {
+	/*
+	 * Load SVG badges into dict: icon => svg
+	 */
+	badges := make(map[string]template.HTML)
+	for _, badge := range config.Badges {
+		badgePath := filepath.Join(config.BadgesDir, badge.Icon + ".svg")
+		content, err := ioutil.ReadFile(badgePath)
+		if err != nil {
+			log.Fatalf("Failed to read file: %s", err)
+		}
+		svg := string(content)
+		badges[badge.Icon] = template.HTML(svg)
+	}
+
 	files, err := ioutil.ReadDir(config.InputDir)
 	if err != nil {
 		log.Fatalf("Failed to read directory '%s': %v", config.InputDir, err)
@@ -253,6 +278,7 @@ func processMarkdownFiles(config Config) {
 			Description: headers["description"],
 			SiteName:    config.BlogName,
 			Tags:        strings.Join(tagsRaw, ","),
+			Locale:      config.Locale,
 		}
 
 		post := Post{
@@ -291,6 +317,7 @@ func processMarkdownFiles(config Config) {
 			"Now":       now,
 			"Canonical": url,
 			"Links":     links,
+			"Badges":    badges,
 		}
 
 		postDir := filepath.Join(config.OutputDir, headers["link"])
@@ -312,13 +339,13 @@ func processMarkdownFiles(config Config) {
 		fmt.Printf("📘 Post: %s\n", headers["link"])
 	}
 
-	generateIndexHTML(config, posts, links, now)
-	generateTagsHTML(config, tagsOutputDir, tagIndex, links, now)
+	generateIndexHTML(config, posts, links, badges, now)
+	generateTagsHTML(config, tagsOutputDir, tagIndex, links, badges, now)
 	generateRSSFeed(config, posts)
-	generateCustomPages(config, links, now)
+	generateCustomPages(config, links, badges, now)
 }
 
-func generateIndexHTML(config Config, posts []Post, links Links, now string) {
+func generateIndexHTML(config Config, posts []Post, links Links, badges map[string]template.HTML, now string) {
 	tmpl, err := template.ParseFiles(config.IndexTemplatePath, filepath.Join(config.TemplatesDir, "shared.html"))
 	if err != nil {
 		log.Fatalf("Failed to parse index template '%s': %v", config.IndexTemplatePath, err)
@@ -342,6 +369,7 @@ func generateIndexHTML(config Config, posts []Post, links Links, now string) {
 		URL:         url,
 		Description: config.Description,
 		SiteName:    config.BlogName,
+		Locale:      config.Locale,
 	}
 
 	data := map[string]interface{}{
@@ -353,6 +381,7 @@ func generateIndexHTML(config Config, posts []Post, links Links, now string) {
 		"Canonical": url,
 		"Links":     links,
 		"Unfurl":    unfurl,
+		"Badges":    badges,
 	}
 
 	if err := tmpl.Execute(indexFile, data); err != nil {
@@ -362,7 +391,7 @@ func generateIndexHTML(config Config, posts []Post, links Links, now string) {
 	fmt.Printf("📙 Index: %s\n", indexFilePath)
 }
 
-func generateTagsHTML(config Config, tagsOutputDir string, tagIndex map[Tag][]Post, links Links, now string) {
+func generateTagsHTML(config Config, tagsOutputDir string, tagIndex map[Tag][]Post, links Links, badges map[string]template.HTML, now string) {
 	tmpl, err := template.ParseFiles(config.TagsIndexTemplatePath, filepath.Join(config.TemplatesDir, "shared.html"))
 	if err != nil {
 		log.Fatalf("Failed to parse tags index template '%s': %v", config.TagsIndexTemplatePath, err)
@@ -384,6 +413,7 @@ func generateTagsHTML(config Config, tagsOutputDir string, tagIndex map[Tag][]Po
 		URL:         links.Tags,
 		Description: config.BlogName + ": Tags",
 		SiteName:    config.BlogName,
+		Locale:      config.Locale,
 	}
 
 	data := map[string]interface{}{
@@ -395,6 +425,7 @@ func generateTagsHTML(config Config, tagsOutputDir string, tagIndex map[Tag][]Po
 		"Canonical": links.Tags,
 		"Links":     links,
 		"Unfurl":    unfurl,
+		"Badges":    badges,
 	}
 
 	if err := tmpl.Execute(indexFile, data); err != nil {
@@ -431,6 +462,7 @@ func generateTagsHTML(config Config, tagsOutputDir string, tagIndex map[Tag][]Po
 			URL:         url,
 			Description: config.BlogName + ": Posts tagged " + tag.TagName,
 			SiteName:    config.BlogName,
+			Locale:      config.Locale,
 		}
 
 		data := map[string]interface{}{
@@ -443,6 +475,7 @@ func generateTagsHTML(config Config, tagsOutputDir string, tagIndex map[Tag][]Po
 			"Canonical": url,
 			"Links":     links,
 			"Unfurl":    unfurl,
+			"Badges":    badges,
 		}
 
 		if err := tagPageTemplate.Execute(tagFile, data); err != nil {
@@ -452,7 +485,7 @@ func generateTagsHTML(config Config, tagsOutputDir string, tagIndex map[Tag][]Po
 	}
 }
 
-func generateCustomPages(config Config, links Links, now string) {
+func generateCustomPages(config Config, links Links, badges map[string]template.HTML, now string) {
 	for _, page := range config.Pages {
 		templatePath := filepath.Join(config.TemplatesDir, page.Template)
 		tmpl, err := template.ParseFiles(templatePath, filepath.Join(config.TemplatesDir, "shared.html"))
@@ -469,6 +502,7 @@ func generateCustomPages(config Config, links Links, now string) {
 			URL:         url,
 			Description: page.Title,
 			SiteName:    config.BlogName,
+			Locale:      config.Locale,
 		}
 
 		data := map[string]interface{}{
@@ -479,6 +513,7 @@ func generateCustomPages(config Config, links Links, now string) {
 			"Canonical": url,
 			"Links":     links,
 			"Unfurl":    unfurl,
+			"Badges":    badges,
 		}
 
 		customPageDir := filepath.Join(config.OutputDir, page.Path)

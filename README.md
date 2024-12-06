@@ -14,7 +14,8 @@ No support for packaging external files, images, deployment or hosting. Just a s
 
 * Posts are authored in Markdown
 * Program `draft` convers them to HTML
-* Example templates are provided
+* Build arbitrary sub-pages
+* Sample templates provided
 * Automatically generates tag pages
 * RSS 2.0 feed
 
@@ -26,37 +27,65 @@ Run `build.sh`. (Sets `DRAFT_BUILD_VERSION` and runs `make`.)
 
 Descriptions of each field in `config.yaml`:
 
-- **`input_dir`**: Directory containing Markdown source files
+* **`input_dir`**: Directory containing Markdown source files
 
-- **`templates_dir`**: Directory containing HTML template files
+* **`templates_dir`**: Directory containing HTML template files
 
-- **`output_dir`**: Directory where generated HTML files will be written
+* **`output_dir`**: Directory where generated HTML files will be written
 
-- **`index_template_path`**: Path to HTML template used for the main index page
+* **`index_template_path`**: Path to HTML template used for the main index page
 
-- **`tags_index_template_path`**: Path to HTML template used for the tags index page
+* **`tags_index_template_path`**: Path to HTML template used for the tags index page
 
-- **`tag_page_template_path`**: Path to HTML template used for individual tag pages
+* **`tag_page_template_path`**: Path to HTML template used for individual tag pages
 
-- **`author`**: Author name, displayed in generated pages
+* **`author`**: Author name, displayed in generated pages
 
-- **`blog_name`**: Blog name, displayed in metadata and header
+* **`blog_name`**: Blog name, displayed in metadata and header
 
-- **`copyright`**: Copyright notice, displayed in metadata and footer
+* **`copyright`**: Copyright notice, displayed in metadata and footer
 
-- **`description`**: Brief description, one paragraph or so, used in link unfurls
+* **`description`**: Brief description, one paragraph or so, used in link unfurls
 
-- **`language`**: Language identifier for the generated pages in the format `language-region` (e.g., `en-us` for English, United States)
+* **`language`**: Language identifier for the generated pages in the format `language-region` (e.g., `en-us` for English, United States)
 
-- **`css_files`**: List of URLs or file paths for CSS stylesheets to include
+* **`css_files`**: List of URLs or file paths for CSS stylesheets to include
 
-- **`js_files`**: List of URLs or file paths for JavaScript files to include
+* **`js_files`**: List of URLs or file paths for JavaScript files to include
 
-- **`url`**: Root URL of the website, used for generating absolute links
+* **`url`**: Root URL of the website, used for generating absolute links
 
-- **`base_path`**: Optional prefix for all URLs, just `blog` for a URL like https://www.example.com/blog/
+* **`base_path`**: Optional prefix for all URLs, just `blog` for a URL like <https://www.example.com/blog/>
 
-- **`back_label`**: Label for back links
+* **`back_label`**: Label for back links
+
+* **`pages`**: List of sub-pages to build
+
+The `pages` block should be in this format:
+
+```
+pages:
+  - template: about.html
+    title: About
+    path: about
+```
+
+* **`badges`**: List of badges and links
+
+The `badges` block might look like this:
+
+```
+badges:
+  - title: "Home Page"
+    url: "https://harrison.page"
+    icon: "home"
+  - title: "Photography"
+    url: "https://harrison.photography"
+    icon: "camera"
+```
+
+The `icon` field refers to an SVG file in the `badges` folder. For example, `camera` maps to `badges/camera.svg`.
+[Lucide](https://lucide.dev) is an excellent resource for SVG icons.
 
 ## Usage
 
@@ -64,10 +93,13 @@ Descriptions of each field in `config.yaml`:
 ./draft config.yaml
 ```
 
+## SVG Icons
+
+* Courtesy of [Lucide](https://lucide.dev/license)
+
 ## References
 
 * [github.com/myles/awesome-static-generators](https://github.com/myles/awesome-static-generators)
-
 
 ## Author
 
