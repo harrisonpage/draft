@@ -44,27 +44,27 @@ type Config struct {
 }
 
 type Labels struct {
-	Title                 string
+	Title string
 }
 
 type Unfurl struct {
-	Title                 string
-	URL                   string
-	Author                string
-	Description           string
-	SiteName              string
-	Tags                  string
+	Title       string
+	URL         string
+	Author      string
+	Description string
+	SiteName    string
+	Tags        string
 }
 
 type Links struct {
-	Home                  string
-	Tags                  string
-	RSS                   string
+	Home string
+	Tags string
+	RSS  string
 }
 
 type Tag struct {
-	TagName     string
-	URL         string
+	TagName string
+	URL     string
 }
 
 type Post struct {
@@ -204,8 +204,8 @@ func processMarkdownFiles(config Config) {
 	now := time.Now().Format("January 2, 2006 at 3:04 PM")
 
 	links := Links{
-		RSS:        BuildRSSLink(config),
-		Tags:       BuildTagsLink(config),
+		RSS:  buildRSSLink(config),
+		Tags: buildTagsLink(config),
 	}
 
 	for _, file := range files {
@@ -229,15 +229,15 @@ func processMarkdownFiles(config Config) {
 		var tagsRaw []string
 		for _, tag := range tagStrings {
 			tag = strings.TrimSpace(tag)
-			tags = append(tags, Tag{TagName:tag, URL:BuildTagLink(config, tag)})
+			tags = append(tags, Tag{TagName: tag, URL: buildTagLink(config, tag)})
 			tagsRaw = append(tagsRaw, tag)
 		}
 
 		labels := Labels{
-			Title:       headers["title"],
+			Title: headers["title"],
 		}
 
-		url := BuildPostLink(config, headers["link"])
+		url := buildPostLink(config, headers["link"])
 
 		unfurl := Unfurl{
 			Title:       headers["title"],
@@ -307,7 +307,7 @@ func processMarkdownFiles(config Config) {
 
 	generateIndexHTML(config, posts, links, now)
 	generateTagsHTML(config, tagsOutputDir, tagIndex, links, now)
-	GenerateRSSFeed(config, posts)
+	generateRSSFeed(config, posts)
 }
 
 func generateIndexHTML(config Config, posts []Post, links Links, now string) {
@@ -324,10 +324,10 @@ func generateIndexHTML(config Config, posts []Post, links Links, now string) {
 	defer indexFile.Close()
 
 	labels := Labels{
-		Title:       config.BlogName,
+		Title: config.BlogName,
 	}
 
-	url := BuildRootLink(config)
+	url := buildRootLink(config)
 
 	unfurl := Unfurl{
 		Title:       config.BlogName,
@@ -368,7 +368,7 @@ func generateTagsHTML(config Config, tagsOutputDir string, tagIndex map[Tag][]Po
 	defer indexFile.Close()
 
 	labels := Labels{
-		Title:       config.BlogName + " Tags",
+		Title: config.BlogName + " Tags",
 	}
 
 	unfurl := Unfurl{
@@ -413,10 +413,10 @@ func generateTagsHTML(config Config, tagsOutputDir string, tagIndex map[Tag][]Po
 		defer tagFile.Close()
 
 		labels := Labels{
-			Title:       config.BlogName + " Tags",
+			Title: config.BlogName + " Tags",
 		}
 
-		url := BuildTagLink(config, tag.TagName)
+		url := buildTagLink(config, tag.TagName)
 
 		unfurl := Unfurl{
 			Title:       config.BlogName,
@@ -444,42 +444,42 @@ func generateTagsHTML(config Config, tagsOutputDir string, tagIndex map[Tag][]Po
 	}
 }
 
-func BuildPostLink(config Config, link string) string {
+func buildPostLink(config Config, link string) string {
 	if config.BasePath != "" {
 		return fmt.Sprintf("%s/%s/%s/", config.URL, config.BasePath, link)
 	}
-	return fmt.Sprintf("%s/%s/", config.URL, "/", link)
+	return fmt.Sprintf("%s/%s/", config.URL, link)
 }
 
-func BuildRootLink(config Config) string {
+func buildRootLink(config Config) string {
 	if config.BasePath != "" {
 		return fmt.Sprintf("%s/%s/", config.URL, config.BasePath)
 	}
 	return fmt.Sprintf("%s/", config.URL)
 }
 
-func BuildTagLink(config Config, tag string) string {
+func buildTagLink(config Config, tag string) string {
 	if config.BasePath != "" {
 		return fmt.Sprintf("%s/%s/tags/%s/", config.URL, config.BasePath, tag)
 	}
 	return fmt.Sprintf("%s/tags/%s/", config.URL, tag)
 }
 
-func BuildTagsLink(config Config) string {
+func buildTagsLink(config Config) string {
 	if config.BasePath != "" {
 		return fmt.Sprintf("%s/%s/tags/", config.URL, config.BasePath)
 	}
 	return fmt.Sprintf("%s/tags/", config.URL)
 }
 
-func BuildRSSLink(config Config) string {
+func buildRSSLink(config Config) string {
 	if config.BasePath != "" {
 		return fmt.Sprintf("%s/%s/rss.xml", config.URL, config.BasePath)
 	}
 	return fmt.Sprintf("%s/rss.xml", config.URL)
 }
 
-func GenerateRSSFeed(config Config, posts []Post) error {
+func generateRSSFeed(config Config, posts []Post) error {
 	items := make([]RSSItem, len(posts))
 	for i, post := range posts {
 		items[i] = RSSItem{
@@ -495,7 +495,7 @@ func GenerateRSSFeed(config Config, posts []Post) error {
 		Version: "2.0",
 		Channel: RSSChannel{
 			Title:       config.BlogName,
-			Link:        BuildRootLink(config),
+			Link:        buildRootLink(config),
 			Description: fmt.Sprintf("Latest posts from %s", config.BlogName),
 			Language:    config.Language,
 			Copyright:   config.Copyright,
@@ -534,5 +534,6 @@ func main() {
 	}
 
 	fmt.Printf("📗 Draft version %s (%s)\n", Version, BuildDate)
+	fmt.Printf("🤓 https://github.com/harrisonpage/draft\n")
 	processMarkdownFiles(*config)
 }
