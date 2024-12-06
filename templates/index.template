@@ -8,6 +8,7 @@
     <meta name="copyright" content="{{ .Copyright }}"/>
     <meta name="revision" content="draft/{{ .Version }}"/>
     <meta name="updated" content="{{ .Now }}"/>
+    <link rel="alternate" type="application/rss+xml" title="{{ .Title }}" href="{{ .RSSLink }}"/>
     {{- if .CSSFiles }}
         {{- range .CSSFiles }}
     <link rel="stylesheet" href="{{ . }}">
@@ -38,7 +39,7 @@
     </main>
 
     <footer>
-        <a href="/tags/">Tags</a> | <a href="/rss.xml">RSS</a> | &copy; {{ .Copyright }} | Built with <a href="https://github.com/harrisonpage/draft">Draft</a> Version {{ .Version }}
+        <a href="{{ .TagsLink }}">Tags</a> | <a href="{{ .RSSLink }}">RSS</a> | &copy; {{ .Copyright }} | Built with <a href="https://github.com/harrisonpage/draft">Draft</a> Version {{ .Version }}
     </footer>
 </body>
 </html>

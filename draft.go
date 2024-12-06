@@ -198,7 +198,7 @@ func processMarkdownFiles(config Config) {
 		var tags []Tag
 		for _, tag := range tagStrings {
 			tag = strings.TrimSpace(tag)
-			tags = append(tags, Tag{TagName:tag, URL:BuildTagLink(config, tag)})
+			tags = append(tags, Tag{TagName:tag, URL:BuildTagsLink(config, tag)})
 		}
 
 		post := Post{
@@ -237,6 +237,8 @@ func processMarkdownFiles(config Config) {
 			"CSSFiles":  config.CSSFiles,
 			"JSFiles":   config.JSFiles,
 			"Now":       now,
+			"TagsLink":  BuildTagLink(config),
+			"RSSLink":   BuildRSSLink(config),
 		}
 
 		postDir := filepath.Join(config.OutputDir, headers["link"])
@@ -285,6 +287,8 @@ func generateIndexHTML(config Config, posts []Post, now string) {
 		"CSSFiles":  config.CSSFiles,
 		"JSFiles":   config.JSFiles,
 		"Now":       now,
+		"TagsLink":  BuildTagLink(config),
+		"RSSLink":   BuildRSSLink(config),
 	}
 
 	if err := tmpl.Execute(indexFile, data); err != nil {
@@ -315,6 +319,8 @@ func generateTagsHTML(config Config, tagsOutputDir string, tagIndex map[Tag][]Po
 		"CSSFiles":  config.CSSFiles,
 		"JSFiles":   config.JSFiles,
 		"Now":       now,
+		"TagsLink":  BuildTagLink(config),
+		"RSSLink":   BuildRSSLink(config),
 	}
 
 	if err := tmpl.Execute(indexFile, data); err != nil {
@@ -349,6 +355,8 @@ func generateTagsHTML(config Config, tagsOutputDir string, tagIndex map[Tag][]Po
 			"CSSFiles":  config.CSSFiles,
 			"JSFiles":   config.JSFiles,
 			"Now":       now,
+			"TagsLink":  BuildTagLink(config),
+			"RSSLink":   BuildRSSLink(config),
 		}
 
 		if err := tagPageTemplate.Execute(tagFile, data); err != nil {
@@ -372,11 +380,25 @@ func BuildRootLink(config Config) string {
 	return fmt.Sprintf("%s/", config.URL)
 }
 
-func BuildTagLink(config Config, tag string) string {
+func BuildTagsLink(config Config, tag string) string {
 	if config.BasePath != "" {
 		return fmt.Sprintf("/%s/tags/%s/", config.BasePath, tag)
 	}
 	return fmt.Sprintf("/tags/%s/", tag)
+}
+
+func BuildTagLink(config Config) string {
+	if config.BasePath != "" {
+		return fmt.Sprintf("/%s/tags/", config.BasePath)
+	}
+	return fmt.Sprintf("/tags/")
+}
+
+func BuildRSSLink(config Config) string {
+	if config.BasePath != "" {
+		return fmt.Sprintf("/%s/rss.xml", config.BasePath)
+	}
+	return fmt.Sprintf("/rss.xml")
 }
 
 func GenerateRSSFeed(config Config, posts []Post) error {
