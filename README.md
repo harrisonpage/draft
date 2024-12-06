@@ -52,6 +52,8 @@ Descriptions of each field in `config.yaml`:
 
 - **`url`**: Root URL of the website, used for generating absolute links
 
+- **`base_path`**: Optional prefix for all URLs, just `blog` for a URL like https://www.example.com/blog/
+
 ## Usage
 
 ```

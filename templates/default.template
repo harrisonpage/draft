@@ -4,18 +4,18 @@
     <title>{{ .Headers.title }}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta charset="utf-8" />
-    <meta name="author" content="{{ .Author }}"/>
-    <meta name="copyright" content="{{ .Copyright }}"/>
+    <meta name="author" content="{{ .Config.Author }}"/>
+    <meta name="copyright" content="{{ .Config.Copyright }}"/>
     <meta name="revision" content="draft/{{ .Version }}"/>
     <meta name="updated" content="{{ .Now }}"/>
-    <link rel="alternate" type="application/rss+xml" title="{{ .Title }}" href="{{ .RSSLink }}"/>
-    {{- if .CSSFiles }}
-        {{- range .CSSFiles }}
+    <link rel="alternate" type="application/rss+xml" title="{{ .Title }}" href="{{ .Config.Links.RSS }}"/>
+    {{- if .Config.CSSFiles }}
+        {{- range .Config.CSSFiles }}
     <link rel="stylesheet" href="{{ . }}">
         {{- end }}
     {{- end }}
-    {{- if .JSFiles }}
-        {{- range .JSFiles }}
+    {{- if .Config.JSFiles }}
+        {{- range .Config.JSFiles }}
     <script src="{{ . }}"></script>
         {{- end }}
     {{- end }}
@@ -23,7 +23,7 @@
 </head>
 <body>
     <header>
-        <h1>{{ .Author }}</h1>
+        <h1>{{ .Headers.title }}</h1>
         <p><a href="../">&lt;&lt;</a></p>
         <p>Published: {{ .Headers.published }}</p>
     </header>
@@ -36,7 +36,7 @@
             {{ range .Tags }}
                 <a href="{{ .URL }}">{{ .TagName }}</a>
             {{ end }}
-        | {{ end }} <a href="/rss.xml">RSS</a> | &copy; {{ .Copyright }} | Built with <a href="https://github.com/harrisonpage/draft">Draft</a> Version {{ .Version }}
+        | {{ end }} <a href="{{.Config.Links.RSS }}">RSS</a> | &copy; {{ .Config.Copyright }} | Built with <a href="https://github.com/harrisonpage/draft">Draft</a> Version {{ .Version }}
         </p>
     </footer>
 </body>

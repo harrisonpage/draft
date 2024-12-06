@@ -36,6 +36,13 @@ type Config struct {
 	JSFiles               []string `yaml:"js_files"`
 	URL                   string   `yaml:"url"`
 	BasePath              string   `yaml:"base_path"`
+	Links                 Links
+}
+
+type Links struct {
+	Home                  string
+	Tags                  string
+	RSS                   string
 }
 
 type Tag struct {
@@ -90,6 +97,11 @@ func loadConfig(filename string) (*Config, error) {
 	if err := decoder.Decode(&config); err != nil {
 		return nil, fmt.Errorf("failed to decode config file: %w", err)
 	}
+
+	config.Links.RSS = BuildRSSLink(config)
+	config.Links.Tags = BuildTagsLink(config)
+
+	fmt.Printf("RSS link = %v", config.Links.RSS)
 	return &config, nil
 }
 
@@ -198,7 +210,7 @@ func processMarkdownFiles(config Config) {
 		var tags []Tag
 		for _, tag := range tagStrings {
 			tag = strings.TrimSpace(tag)
-			tags = append(tags, Tag{TagName:tag, URL:BuildTagsLink(config, tag)})
+			tags = append(tags, Tag{TagName:tag, URL:BuildTagLink(config, tag)})
 		}
 
 		post := Post{
@@ -227,18 +239,12 @@ func processMarkdownFiles(config Config) {
 		htmlContent := publish([]byte(content))
 
 		data := map[string]interface{}{
+			"Config":    config,
 			"Headers":   headers,
 			"Content":   template.HTML(htmlContent),
 			"Tags":      tags,
 			"Version":   Version,
-			"Author":    config.Author,
-			"BlogName":  config.BlogName,
-			"Copyright": config.Copyright,
-			"CSSFiles":  config.CSSFiles,
-			"JSFiles":   config.JSFiles,
 			"Now":       now,
-			"TagsLink":  BuildTagLink(config),
-			"RSSLink":   BuildRSSLink(config),
 		}
 
 		postDir := filepath.Join(config.OutputDir, headers["link"])
@@ -279,16 +285,10 @@ func generateIndexHTML(config Config, posts []Post, now string) {
 	defer indexFile.Close()
 
 	data := map[string]interface{}{
+		"Config":    config,
 		"Posts":     reverse(posts),
 		"Version":   Version,
-		"Author":    config.Author,
-		"BlogName":  config.BlogName,
-		"Copyright": config.Copyright,
-		"CSSFiles":  config.CSSFiles,
-		"JSFiles":   config.JSFiles,
 		"Now":       now,
-		"TagsLink":  BuildTagLink(config),
-		"RSSLink":   BuildRSSLink(config),
 	}
 
 	if err := tmpl.Execute(indexFile, data); err != nil {
@@ -312,15 +312,10 @@ func generateTagsHTML(config Config, tagsOutputDir string, tagIndex map[Tag][]Po
 	defer indexFile.Close()
 
 	data := map[string]interface{}{
+		"Config":    config,
 		"Tags":      tagIndex,
 		"Version":   Version,
-		"Author":    config.Author,
-		"Copyright": config.Copyright,
-		"CSSFiles":  config.CSSFiles,
-		"JSFiles":   config.JSFiles,
 		"Now":       now,
-		"TagsLink":  BuildTagLink(config),
-		"RSSLink":   BuildRSSLink(config),
 	}
 
 	if err := tmpl.Execute(indexFile, data); err != nil {
@@ -347,16 +342,11 @@ func generateTagsHTML(config Config, tagsOutputDir string, tagIndex map[Tag][]Po
 		defer tagFile.Close()
 
 		data := map[string]interface{}{
+			"Config":    config,
 			"Key":       tag.TagName,
 			"Value":     posts,
 			"Version":   Version,
-			"Author":    config.Author,
-			"Copyright": config.Copyright,
-			"CSSFiles":  config.CSSFiles,
-			"JSFiles":   config.JSFiles,
 			"Now":       now,
-			"TagsLink":  BuildTagLink(config),
-			"RSSLink":   BuildRSSLink(config),
 		}
 
 		if err := tagPageTemplate.Execute(tagFile, data); err != nil {
@@ -380,14 +370,14 @@ func BuildRootLink(config Config) string {
 	return fmt.Sprintf("%s/", config.URL)
 }
 
-func BuildTagsLink(config Config, tag string) string {
+func BuildTagLink(config Config, tag string) string {
 	if config.BasePath != "" {
 		return fmt.Sprintf("/%s/tags/%s/", config.BasePath, tag)
 	}
 	return fmt.Sprintf("/tags/%s/", tag)
 }
 
-func BuildTagLink(config Config) string {
+func BuildTagsLink(config Config) string {
 	if config.BasePath != "" {
 		return fmt.Sprintf("/%s/tags/", config.BasePath)
 	}
