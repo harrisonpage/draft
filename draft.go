@@ -19,6 +19,7 @@ import (
 )
 
 var Version string
+var BuildDate string
 
 type Config struct {
 	InputDir              string   `yaml:"input_dir"`
@@ -402,6 +403,6 @@ func main() {
 		os.Exit(1)
 	}
 
-	fmt.Printf("📗 Draft version %s\n", Version)
+	fmt.Printf("📗 Draft version %s (%s)\n", Version, BuildDate)
 	processMarkdownFiles(*config)
 }
