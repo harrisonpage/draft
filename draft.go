@@ -175,7 +175,7 @@ func processMarkdownFiles(config Config) {
 	}
 
 	var posts []Post
-	tagIndex := make(map[string][]Post)
+	tagIndex := make(map[Tag][]Post)
 	now := time.Now().Format("January 2, 2006 at 3:04 PM")
 
 	for _, file := range files {
@@ -213,7 +213,7 @@ func processMarkdownFiles(config Config) {
 		}
 		posts = append(posts, post)
 
-		for _, tag := range tagStrings {
+		for _, tag := range tags {
 			tagIndex[tag] = append(tagIndex[tag], post)
 		}
 
@@ -294,7 +294,7 @@ func generateIndexHTML(config Config, posts []Post, now string) {
 	fmt.Printf("📙 Index: %s\n", indexFilePath)
 }
 
-func generateTagsHTML(config Config, tagsOutputDir string, tagIndex map[string][]Post, now string) {
+func generateTagsHTML(config Config, tagsOutputDir string, tagIndex map[Tag][]Post, now string) {
 	tmpl, err := template.ParseFiles(config.TagsIndexTemplatePath)
 	if err != nil {
 		log.Fatalf("Failed to parse tags index template '%s': %v", config.TagsIndexTemplatePath, err)
@@ -328,9 +328,9 @@ func generateTagsHTML(config Config, tagsOutputDir string, tagIndex map[string][
 	}
 
 	for tag, posts := range tagIndex {
-		tagDir := filepath.Join(tagsOutputDir, tag)
+		tagDir := filepath.Join(tagsOutputDir, tag.TagName)
 		if err := os.MkdirAll(tagDir, 0755); err != nil {
-			log.Fatalf("Failed to create directory for tag '%s': %v", tag, err)
+			log.Fatalf("Failed to create directory for tag '%s': %v", tag.TagName, err)
 		}
 
 		tagFilePath := filepath.Join(tagDir, "index.html")
@@ -341,7 +341,7 @@ func generateTagsHTML(config Config, tagsOutputDir string, tagIndex map[string][
 		defer tagFile.Close()
 
 		data := map[string]interface{}{
-			"Key":       tag,
+			"Key":       tag.TagName,
 			"Value":     posts,
 			"Version":   Version,
 			"Author":    config.Author,
@@ -354,7 +354,7 @@ func generateTagsHTML(config Config, tagsOutputDir string, tagIndex map[string][
 		if err := tagPageTemplate.Execute(tagFile, data); err != nil {
 			log.Fatalf("Failed to generate tag page '%s': %v", tagFilePath, err)
 		}
-		fmt.Printf("📕 Tag: %s\n", tag)
+		fmt.Printf("📕 Tag: %s\n", tag.TagName)
 	}
 }
 

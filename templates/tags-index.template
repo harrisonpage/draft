@@ -29,8 +29,8 @@
         <ul>
         {{ range $tag, $posts := .Tags }}
             <li>
-                <h2><a href="./{{ $tag }}/index.html">{{ $tag }}</a></h2>
-                <p>{{ len $posts }} post(s) tagged with "{{ $tag }}"</p>
+                <h2><a href="{{ $tag.URL }}">{{ $tag.TagName }}</a></h2>
+                <p>{{ len $posts }} post(s) tagged with "{{ $tag.TagName }}"</p>
             </li>
         {{ end }}
         </ul>
