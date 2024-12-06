@@ -42,6 +42,6 @@
 
 {{define "footer"}}
     <footer>
-        <a href="{{ .Links.Tags }}">Tags</a> | <a href="{{ .Links.RSS }}">RSS</a> | &copy; {{ .Config.Copyright }} | Built with <a href="https://github.com/harrisonpage/draft">Draft</a> Version {{ .Version }}
+        <a href="{{ .Config.URL }}">{{ .Config.BlogName }}</a> • <a href="{{ .Links.Tags }}">Tags</a> • <a href="{{ .Links.RSS }}">RSS</a> • &copy; {{ .Config.Copyright }} • Built with <a href="https://github.com/harrisonpage/draft">Draft</a> Version {{ .Version }}
     </footer>
 {{end}}
