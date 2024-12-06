@@ -218,14 +218,24 @@ func processMarkdownFiles(config Config) {
 		badges[badge.Icon] = template.HTML(svg)
 	}
 
+	/*
+	 * Fetch a list of all posts
+	 */
 	files, err := ioutil.ReadDir(config.InputDir)
 	if err != nil {
 		log.Fatalf("Failed to read directory '%s': %v", config.InputDir, err)
 	}
 
+	/*
+	 * Create output folder
+	 */
 	if err := os.MkdirAll(config.OutputDir, 0755); err != nil {
 		log.Fatalf("Failed to create output directory '%s': %v", config.OutputDir, err)
 	}
+
+	/*
+	 * Create tags folder
+	 */
 	tagsOutputDir := filepath.Join(config.OutputDir, "tags")
 	if err := os.MkdirAll(tagsOutputDir, 0755); err != nil {
 		log.Fatalf("Failed to create tags directory '%s': %v", config.OutputDir, err)
