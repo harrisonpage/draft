@@ -29,7 +29,7 @@
         <ul>
         {{ range .Value }}
             <li>
-                <h2><a href="../../{{ .Link }}.html">{{ .Title }}</a></h2>
+                <h2><a href="{{ .URL }}.html">{{ .Title }}</a></h2>
                 <p>{{ .Description }}</p>
                 <p><strong>Published:</strong> {{ .Published }}</p>
                 <p><img src="{{ .Image }}" alt="{{ .Title }}" style="max-width:200px;"></p>

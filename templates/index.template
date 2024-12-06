@@ -28,7 +28,7 @@
         <ul>
         {{ range .Posts }}
             <li>
-                <h2><span>{{ .Favicon }}</span> <a href="{{ .Link }}/">{{ .Title }}</a></h2>
+                <h2><span>{{ .Favicon }}</span> <a href="{{ .URL }}">{{ .Title }}</a></h2>
                 <p><strong>{{ .Published }}</strong></p>
                 <p>{{ .Description }}</p>
                 <p><img src="{{ .Image }}" alt="{{ .Title }}" style="max-width:200px;"></p>

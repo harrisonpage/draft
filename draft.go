@@ -35,13 +35,15 @@ type Config struct {
 	CSSFiles              []string `yaml:"css_files"`
 	JSFiles               []string `yaml:"js_files"`
 	URL                   string   `yaml:"url"`
+	BasePath              string   `yaml:"base_path"`
 }
 
 
-type PostMetadata struct {
+type Post struct {
 	Title       string
 	Author      string
 	Link        string
+	URL         string
 	Published   string
 	Description string
 	Tags        []string
@@ -146,8 +148,8 @@ func validateHeaders(headers map[string]string, required []string) error {
 	return nil
 }
 
-func reverse(posts []PostMetadata) []PostMetadata {
-	reversed := make([]PostMetadata, len(posts))
+func reverse(posts []Post) []Post {
+	reversed := make([]Post, len(posts))
 	for i, post := range posts {
 		reversed[len(posts)-1-i] = post
 	}
@@ -168,8 +170,8 @@ func processMarkdownFiles(config Config) {
 		log.Fatalf("Failed to create tags directory '%s': %v", config.OutputDir, err)
 	}
 
-	var posts []PostMetadata
-	tagIndex := make(map[string][]PostMetadata)
+	var posts []Post
+	tagIndex := make(map[string][]Post)
 	now := time.Now().Format("January 2, 2006 at 3:04 PM")
 
 	for _, file := range files {
@@ -193,9 +195,10 @@ func processMarkdownFiles(config Config) {
 			tags[i] = strings.TrimSpace(tag)
 		}
 
-		post := PostMetadata{
+		post := Post{
 			Title:       headers["title"],
 			Link:        headers["link"],
+			URL:         BuildPostLink(config, headers["link"]),
 			Published:   headers["published"],
 			Description: headers["description"],
 			Tags:        tags,
@@ -246,7 +249,7 @@ func processMarkdownFiles(config Config) {
 			log.Fatalf("Failed to execute template for file '%s': %v", filePath, err)
 		}
 
-		fmt.Printf("📘 %s\n", headers["link"])
+		fmt.Printf("📘 Post: %s\n", headers["link"])
 	}
 
 	generateIndexHTML(config, posts, now)
@@ -254,7 +257,7 @@ func processMarkdownFiles(config Config) {
 	GenerateRSSFeed(config, posts)
 }
 
-func generateIndexHTML(config Config, posts []PostMetadata, now string) {
+func generateIndexHTML(config Config, posts []Post, now string) {
 	tmpl, err := template.ParseFiles(config.IndexTemplatePath)
 	if err != nil {
 		log.Fatalf("Failed to parse index template '%s': %v", config.IndexTemplatePath, err)
@@ -282,10 +285,10 @@ func generateIndexHTML(config Config, posts []PostMetadata, now string) {
 		log.Fatalf("Failed to generate index.html: %v", err)
 	}
 
-	fmt.Printf("📙 %s\n", indexFilePath)
+	fmt.Printf("📙 Index: %s\n", indexFilePath)
 }
 
-func generateTagsHTML(config Config, tagsOutputDir string, tagIndex map[string][]PostMetadata, now string) {
+func generateTagsHTML(config Config, tagsOutputDir string, tagIndex map[string][]Post, now string) {
 	tmpl, err := template.ParseFiles(config.TagsIndexTemplatePath)
 	if err != nil {
 		log.Fatalf("Failed to parse tags index template '%s': %v", config.TagsIndexTemplatePath, err)
@@ -311,7 +314,7 @@ func generateTagsHTML(config Config, tagsOutputDir string, tagIndex map[string][
 	if err := tmpl.Execute(indexFile, data); err != nil {
 		log.Fatalf("Failed to generate tags index.html: %v", err)
 	}
-	fmt.Printf("📓 %s\n", tagsIndexFilePath)
+	fmt.Printf("📓 Tag Index: %s\n", tagsIndexFilePath)
 
 	tagPageTemplate, err := template.ParseFiles(config.TagPageTemplatePath)
 	if err != nil {
@@ -345,16 +348,30 @@ func generateTagsHTML(config Config, tagsOutputDir string, tagIndex map[string][
 		if err := tagPageTemplate.Execute(tagFile, data); err != nil {
 			log.Fatalf("Failed to generate tag page '%s': %v", tagFilePath, err)
 		}
-		fmt.Printf("📕 %s\n", tagFilePath)
+		fmt.Printf("📕 Tag: %s\n", tag)
 	}
 }
 
-func GenerateRSSFeed(config Config, posts []PostMetadata) error {
+func BuildPostLink(config Config, link string) string {
+	if config.BasePath != "" {
+		return fmt.Sprintf("%s/%s/%s/", config.URL, config.BasePath, link)
+	}
+	return fmt.Sprintf("%s/%s/", config.URL, "/", link)
+}
+
+func BuildRootLink(config Config) string {
+	if config.BasePath != "" {
+		return fmt.Sprintf("%s/%s/", config.URL, config.BasePath)
+	}
+	return fmt.Sprintf("%s/", config.URL)
+}
+
+func GenerateRSSFeed(config Config, posts []Post) error {
 	items := make([]RSSItem, len(posts))
 	for i, post := range posts {
 		items[i] = RSSItem{
 			Title:       post.Title,
-			Link:        config.URL + "/" + post.Link + "/",
+			Link:        post.URL,
 			Description: post.Description,
 			Author:      post.Author,
 			PubDate:     post.Published, // .Format(time.RFC1123), // Format for RSS
@@ -365,7 +382,7 @@ func GenerateRSSFeed(config Config, posts []PostMetadata) error {
 		Version: "2.0",
 		Channel: RSSChannel{
 			Title:       config.BlogName,
-			Link:        config.URL + "/",
+			Link:        BuildRootLink(config),
 			Description: fmt.Sprintf("Latest posts from %s", config.BlogName),
 			Language:    config.Language,
 			Copyright:   config.Copyright,
@@ -386,7 +403,7 @@ func GenerateRSSFeed(config Config, posts []PostMetadata) error {
 		return fmt.Errorf("failed to encode RSS feed: %w", err)
 	}
 
-	fmt.Printf("📔 %s\n", outputPath)
+	fmt.Printf("📔 RSS: %s\n", outputPath)
 	return nil
 }
 
