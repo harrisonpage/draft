@@ -157,17 +157,17 @@ func parseFileWithHeaders(filePath string) (map[string]string, string, error) {
 
 	headers := make(map[string]string)
 	var contentBuilder strings.Builder
-	inContent := false
+	yip := false
 
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
 		line := scanner.Text()
 		if line == "==cut here==" {
-			inContent = true
+			yip = true
 			continue
 		}
 
-		if inContent {
+		if yip {
 			contentBuilder.WriteString(line + "\n")
 		} else {
 			parts := strings.SplitN(line, ":", 2)
