@@ -261,7 +261,7 @@ func processMarkdownFiles(config Config) {
 			log.Fatalf("Failed to process file '%s': %v", filePath, err)
 		}
 
-		requiredHeaders := []string{"title", "link", "published", "template", "description", "tags", "image", "favicon"}
+		requiredHeaders := []string{"title", "link", "published", "template", "description", "tags"}
 		if err := validateHeaders(headers, requiredHeaders); err != nil {
 			log.Fatalf("Validation error for file '%s': %v", filePath, err)
 		}
