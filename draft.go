@@ -266,7 +266,7 @@ func processMarkdownFiles(config Config) {
 
 		templateFile := headers["template"]
 		templatePath := filepath.Join(config.TemplatesDir, templateFile)
-		tmpl, err := template.ParseFiles(templatePath, filepath.Join(config.TemplatesDir, "shared.template"))
+		tmpl, err := template.ParseFiles(templatePath, filepath.Join(config.TemplatesDir, "shared.html"))
 		if err != nil {
 			log.Fatalf("Failed to parse template '%s': %v", templateFile, err)
 		}
@@ -311,7 +311,7 @@ func processMarkdownFiles(config Config) {
 }
 
 func generateIndexHTML(config Config, posts []Post, links Links, now string) {
-	tmpl, err := template.ParseFiles(config.IndexTemplatePath, filepath.Join(config.TemplatesDir, "shared.template"))
+	tmpl, err := template.ParseFiles(config.IndexTemplatePath, filepath.Join(config.TemplatesDir, "shared.html"))
 	if err != nil {
 		log.Fatalf("Failed to parse index template '%s': %v", config.IndexTemplatePath, err)
 	}
@@ -355,7 +355,7 @@ func generateIndexHTML(config Config, posts []Post, links Links, now string) {
 }
 
 func generateTagsHTML(config Config, tagsOutputDir string, tagIndex map[Tag][]Post, links Links, now string) {
-	tmpl, err := template.ParseFiles(config.TagsIndexTemplatePath, filepath.Join(config.TemplatesDir, "shared.template"))
+	tmpl, err := template.ParseFiles(config.TagsIndexTemplatePath, filepath.Join(config.TemplatesDir, "shared.html"))
 	if err != nil {
 		log.Fatalf("Failed to parse tags index template '%s': %v", config.TagsIndexTemplatePath, err)
 	}
@@ -394,7 +394,7 @@ func generateTagsHTML(config Config, tagsOutputDir string, tagIndex map[Tag][]Po
 	}
 	fmt.Printf("📓 Tag Index: %s\n", tagsIndexFilePath)
 
-	tagPageTemplate, err := template.ParseFiles(config.TagPageTemplatePath, filepath.Join(config.TemplatesDir, "shared.template"))
+	tagPageTemplate, err := template.ParseFiles(config.TagPageTemplatePath, filepath.Join(config.TemplatesDir, "shared.html"))
 	if err != nil {
 		log.Fatalf("Failed to parse tag page template '%s': %v", config.TagPageTemplatePath, err)
 	}
