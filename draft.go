@@ -39,8 +39,15 @@ type Config struct {
 	BackLabel             string   `yaml:"back_label"`
 	CSSFiles              []string `yaml:"css_files"`
 	JSFiles               []string `yaml:"js_files"`
+	Pages                 []Page   `yaml:"pages"`
 	URL                   string   `yaml:"url"`
 	BasePath              string   `yaml:"base_path"`
+}
+
+type Page struct {
+	Template string
+	Title    string
+	Path     string
 }
 
 type Labels struct {
@@ -308,6 +315,7 @@ func processMarkdownFiles(config Config) {
 	generateIndexHTML(config, posts, links, now)
 	generateTagsHTML(config, tagsOutputDir, tagIndex, links, now)
 	generateRSSFeed(config, posts)
+	generateCustomPages(config, links, now)
 }
 
 func generateIndexHTML(config Config, posts []Post, links Links, now string) {
@@ -444,6 +452,55 @@ func generateTagsHTML(config Config, tagsOutputDir string, tagIndex map[Tag][]Po
 	}
 }
 
+func generateCustomPages(config Config, links Links, now string) {
+	for _, page := range config.Pages {
+		templatePath := filepath.Join(config.TemplatesDir, page.Template)
+		tmpl, err := template.ParseFiles(templatePath, filepath.Join(config.TemplatesDir, "shared.html"))
+		if err != nil {
+			log.Fatalf("Failed to parse template '%s': %v", templatePath, err)
+		}
+		labels := Labels{
+			Title: page.Title,
+		}
+
+		url := buildCustomPageLink(config, page)
+		unfurl := Unfurl{
+			Title:       config.BlogName,
+			URL:         url,
+			Description: page.Title,
+			SiteName:    config.BlogName,
+		}
+
+		data := map[string]interface{}{
+			"Config":    config,
+			"Labels":    labels,
+			"Version":   Version,
+			"Now":       now,
+			"Canonical": url,
+			"Links":     links,
+			"Unfurl":    unfurl,
+		}
+
+		customPageDir := filepath.Join(config.OutputDir, page.Path)
+		if err := os.MkdirAll(customPageDir, 0755); err != nil {
+			log.Fatalf("Failed to create directory '%s': %v", customPageDir, err)
+		}
+		customPagePath := filepath.Join(customPageDir, "index.html")
+
+		outputFile, err := os.Create(customPagePath)
+		if err != nil {
+			log.Fatalf("Failed to create output file '%s': %v", customPagePath, err)
+		}
+		defer outputFile.Close()
+
+		if err := tmpl.Execute(outputFile, data); err != nil {
+			log.Fatalf("Failed to execute template for file '%s': %v", customPagePath, err)
+		}
+
+		fmt.Printf("📘 Page: %s\n", page.Title)
+	}
+}
+
 func buildPostLink(config Config, link string) string {
 	if config.BasePath != "" {
 		return fmt.Sprintf("%s/%s/%s/", config.URL, config.BasePath, link)
@@ -477,6 +534,13 @@ func buildRSSLink(config Config) string {
 		return fmt.Sprintf("%s/%s/rss.xml", config.URL, config.BasePath)
 	}
 	return fmt.Sprintf("%s/rss.xml", config.URL)
+}
+
+func buildCustomPageLink(config Config, page Page) string {
+	if config.BasePath != "" {
+		return fmt.Sprintf("%s/%s/%s/", config.URL, config.BasePath, page.Path)
+	}
+	return fmt.Sprintf("%s/%s", config.URL, page.Path)
 }
 
 func generateRSSFeed(config Config, posts []Post) error {

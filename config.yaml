@@ -13,6 +13,13 @@ css_files:
   - "https://example.com/stylesheet.css"
 js_files:
   - "https://example.com/script.js"
+pages:
+  - template: about.html
+    title: About
+    path: about
+  - template: colophon.html
+    title: Colophon
+    path: colophon
 url: "https://example.com"
 base_path: "draft"
 back_label: "Back"
