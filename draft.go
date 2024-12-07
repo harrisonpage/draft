@@ -39,6 +39,7 @@ type Config struct {
 	Copyright             string   `yaml:"copyright"`
 	Language              string   `yaml:"language"`
 	Locale                string   `yaml:"locale"`
+	Lang                  string   `yaml:"lang"`
 	BackLabel             string   `yaml:"back_label"`
 	CSSFiles              []string `yaml:"css_files"`
 	JSFiles               []string `yaml:"js_files"`

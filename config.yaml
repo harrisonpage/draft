@@ -9,6 +9,7 @@ author: "Your Name Here"
 blog_name: "Generic Blog Name"
 description: "This is my blog. There are many like it, but this one is mine"
 copyright: "2024"
+lang: "en"
 language: "en-us"
 locale: "en_US"
 badges:

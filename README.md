@@ -47,6 +47,8 @@ Descriptions of each field in `config.yaml`:
 
 * **`description`**: Brief description, one paragraph or so, used in link unfurls
 
+* **`lang`**: Language as specified in the `<html>` tag e.g. "en"
+
 * **`language`**: Language identifier for the generated pages in the format `language-region` (e.g., `en-us` for English, United States)
 
 * **`css_files`**: List of URLs or file paths for CSS stylesheets to include
