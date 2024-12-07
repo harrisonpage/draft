@@ -6,18 +6,16 @@
         <h1>{{ .Config.BlogName }}</h1>
     </header>
     <main>
-        <ul>
-        {{ range .Posts }}
-            <li>
-                <h2> <a href="{{ .URL }}">{{ .Title }}</a>{{- if .Favicon }} {{ .Favicon }}{{- end }}</h2>
-                <p><strong>{{ .Published }}</strong></p>
-                <p>{{ .Description }}</p>
-                {{- if .Image }}
-                <p><img src="{{ .Image }}" alt="{{ .Title }}" style="max-width:200px;"></p>
-                {{- end }}
-            </li>
-        {{ end }}
-        </ul>
+        <h2>Posts</h2>
+        <table>
+            {{ range .Posts }}
+            <tr>
+                {{- if .Favicon }}<td>{{ .Favicon }}</td>{{- end }}
+                <td> <a href="{{ .URL }}">{{ .Title }}</a> </td>
+                <td> {{ .Published }} </td>
+            </tr>
+            {{- end}}
+        </table>
     </main>
     {{ template "footer" . }}
 </body>
