@@ -45,12 +45,14 @@
         <p>
         <a href="{{ .Config.URL }}">{{ .Config.BlogName }}</a>
         </p>
-        {{- if .NextPost.URL }}
+
         <p>
-        Next Post: <a href="{{ .NextPost.URL }}">{{ .NextPost.Title }}</a>
-        </p>
+        {{- if .PreviousPost.URL }}
+        <a style="text-decoration: none;" href="{{ .PreviousPost.URL }}" title="Previous: {{ .PreviousPost.Title }}">{{ index $.Badges "back.svg" }}</a>
         {{- end }}
-        <p>
+        {{- if .NextPost.URL }}
+        <a style="text-decoration: none;" href="{{ .NextPost.URL }}" title="Next: {{ .NextPost.Title }}">{{ index $.Badges "next.svg" }}</a>
+        {{- end }}
         {{- range .Config.Badges }}
             <a href="{{- if .URL }}{{ .URL }}{{ else }}#{{- end}}" {{- if .ID }}id="{{ .ID }}"{{- end }}style="text-decoration: none;" title="{{ .Title }}">{{ index $.Badges .Icon }}</a>
         {{- end }}

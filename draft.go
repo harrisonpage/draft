@@ -207,18 +207,28 @@ func reverse(posts []Post) []Post {
 
 func processMarkdownFiles(config Config) {
 	/*
-	 * Load SVG badges into dict: icon => svg
+	 * Load badges into map: filename => SVG
 	 */
 	badges := make(map[string]template.HTML)
-	for _, badge := range config.Badges {
-		badgePath := filepath.Join(config.BadgesDir, badge.Icon+".svg")
+
+	badgeFiles, err := os.ReadDir(config.BadgesDir)
+	if err != nil {
+		log.Fatalf("Failed to read directory '%s': %v", config.BadgesDir, err)
+	}
+
+	for _, badgeFile := range(badgeFiles) {
+		if badgeFile.IsDir() {
+			continue
+		}
+		badgePath := filepath.Join(config.BadgesDir, badgeFile.Name())
 		content, err := os.ReadFile(badgePath)
 		if err != nil {
 			log.Fatalf("Failed to read file: %s", err)
 		}
-		svg := string(content)
-		badges[badge.Icon] = template.HTML(svg)
+		badges[badgeFile.Name()] = template.HTML(string(content))
 	}
+
+	fmt.Printf("badges %v", badges)
 
 	/*
 	 * Fetch a list of all posts
@@ -320,6 +330,12 @@ func processMarkdownFiles(config Config) {
 
 		htmlContent := publish([]byte(post.Content))
 
+		var previousPost Post
+		if i != len(posts)-1 {
+			previousPost = posts[i+1]
+		} else {
+			previousPost = Post{}
+		}
 		var nextPost Post
 		if i > 0 {
 			nextPost = posts[i-1]
@@ -339,6 +355,7 @@ func processMarkdownFiles(config Config) {
 			"Canonical": post.URL,
 			"Links":     links,
 			"Badges":    badges,
+			"PreviousPost": previousPost,
 			"NextPost":  nextPost,
 		}
 
