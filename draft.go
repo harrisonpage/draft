@@ -5,6 +5,7 @@ import (
 	"encoding/xml"
 	"fmt"
 	"html/template"
+	"io/fs"
 	"log"
 	"os"
 	"path/filepath"
@@ -48,9 +49,9 @@ type Config struct {
 
 type Badge struct {
 	Title string
-	URL  string
-	Icon string
-	ID string
+	URL   string
+	Icon  string
+	ID    string
 }
 
 type Page struct {
@@ -89,6 +90,8 @@ type Post struct {
 	Author      string
 	Link        string
 	URL         string
+	Template    string
+	Content     string
 	Published   string
 	Description string
 	Tags        []Tag
@@ -202,14 +205,13 @@ func reverse(posts []Post) []Post {
 	return reversed
 }
 
-
 func processMarkdownFiles(config Config) {
 	/*
 	 * Load SVG badges into dict: icon => svg
 	 */
 	badges := make(map[string]template.HTML)
 	for _, badge := range config.Badges {
-		badgePath := filepath.Join(config.BadgesDir, badge.Icon + ".svg")
+		badgePath := filepath.Join(config.BadgesDir, badge.Icon+".svg")
 		content, err := os.ReadFile(badgePath)
 		if err != nil {
 			log.Fatalf("Failed to read file: %s", err)
@@ -241,8 +243,19 @@ func processMarkdownFiles(config Config) {
 		log.Fatalf("Failed to create tags directory '%s': %v", config.OutputDir, err)
 	}
 
+	/*
+	 * List of all posts
+	 */
 	var posts []Post
+
+	/*
+	 * Map of 1 tag to many posts
+	 */
 	tagIndex := make(map[Tag][]Post)
+
+	/*
+	 * Timestamp
+	 */
 	now := time.Now().Format("January 2, 2006 at 3:04 PM")
 
 	links := Links{
@@ -250,71 +263,69 @@ func processMarkdownFiles(config Config) {
 		Tags: buildTagsLink(config),
 	}
 
+	/*
+	 * Pre-process all posts
+	 */
+	var post Post
 	for _, file := range files {
 		if file.IsDir() {
 			continue
 		}
+		post = generatePost(config, file, now)
+		posts = append(posts, post)
 
-		filePath := filepath.Join(config.InputDir, file.Name())
-		headers, content, err := parseFileWithHeaders(filePath)
+		for _, tag := range post.Tags {
+			tagIndex[tag] = append(tagIndex[tag], post)
+		}
+	}
+
+	/*
+	 * Display new to old
+	 */
+	posts = reverse(posts)
+
+	for i, post := range posts {
+		templatePath := filepath.Join(config.TemplatesDir, post.Template)
+		tmpl, err := template.ParseFiles(templatePath, filepath.Join(config.TemplatesDir, "shared.html"))
 		if err != nil {
-			log.Fatalf("Failed to process file '%s': %v", filePath, err)
+			log.Fatalf("Failed to parse template '%s': %v", post.Template, err)
 		}
-
-		requiredHeaders := []string{"title", "link", "published", "template", "description", "tags"}
-		if err := validateHeaders(headers, requiredHeaders); err != nil {
-			log.Fatalf("Validation error for file '%s': %v", filePath, err)
-		}
-
-		tagStrings := strings.Split(headers["tags"], ",")
-		var tags []Tag
-		var tagsRaw []string
-		for _, tag := range tagStrings {
-			tag = strings.TrimSpace(tag)
-			tags = append(tags, Tag{TagName: tag, URL: buildTagLink(config, tag)})
-			tagsRaw = append(tagsRaw, tag)
-		}
-
 		labels := Labels{
-			Title: headers["title"],
+			Title: post.Title,
 		}
 
-		url := buildPostLink(config, headers["link"])
+		/*
+		 * Collect all tags as we go
+		 */
+		var tags []Tag
+		tags = append(tags, post.Tags...)
+
+		/*
+		 * Generate list of tag names
+		 */
+		tagNames := make([]string, len(tags))
+		for i, tag := range tags {
+			tagNames[i] = tag.TagName
+		}
 
 		unfurl := Unfurl{
-			Title:       headers["title"],
-			URL:         url,
-			Author:      headers["author"],
-			Description: headers["description"],
+			Title:       post.Title,
+			URL:         post.URL,
+			Author:      post.Author,
+			Description: post.Description,
 			SiteName:    config.BlogName,
-			Tags:        strings.Join(tagsRaw, ","),
+			Tags:        strings.Join(tagNames, ","),
 			Locale:      config.Locale,
 		}
 
-		post := Post{
-			Title:       headers["title"],
-			Link:        headers["link"],
-			URL:         url,
-			Published:   headers["published"],
-			Description: headers["description"],
-			Tags:        tags,
-			Image:       headers["image"],
-			Favicon:     headers["favicon"],
-		}
-		posts = append(posts, post)
+		htmlContent := publish([]byte(post.Content))
 
-		for _, tag := range tags {
-			tagIndex[tag] = append(tagIndex[tag], post)
+		var nextPost Post
+		if i != len(posts)-1 {
+			nextPost = posts[i+1]
+		} else {
+			nextPost = Post{}
 		}
-
-		templateFile := headers["template"]
-		templatePath := filepath.Join(config.TemplatesDir, templateFile)
-		tmpl, err := template.ParseFiles(templatePath, filepath.Join(config.TemplatesDir, "shared.html"))
-		if err != nil {
-			log.Fatalf("Failed to parse template '%s': %v", templateFile, err)
-		}
-
-		htmlContent := publish([]byte(content))
 
 		data := map[string]interface{}{
 			"Config":    config,
@@ -325,12 +336,13 @@ func processMarkdownFiles(config Config) {
 			"Tags":      tags,
 			"Version":   Version,
 			"Now":       now,
-			"Canonical": url,
+			"Canonical": post.URL,
 			"Links":     links,
 			"Badges":    badges,
+			"NextPost":  nextPost,
 		}
 
-		postDir := filepath.Join(config.OutputDir, headers["link"])
+		postDir := filepath.Join(config.OutputDir, post.Link)
 		if err := os.MkdirAll(postDir, 0755); err != nil {
 			log.Fatalf("Failed to create directory '%s': %v", postDir, err)
 		}
@@ -343,16 +355,53 @@ func processMarkdownFiles(config Config) {
 		defer outputFile.Close()
 
 		if err := tmpl.Execute(outputFile, data); err != nil {
-			log.Fatalf("Failed to execute template for file '%s': %v", filePath, err)
+			log.Fatalf("Failed to execute template for file '%s': %v", outputFilePath, err)
 		}
 
-		fmt.Printf("📘 Post: %s\n", headers["link"])
+		fmt.Printf("📘 Post: %s\n", post.Link)
 	}
 
 	generateIndexHTML(config, posts, links, badges, now)
 	generateTagsHTML(config, tagsOutputDir, tagIndex, links, badges, now)
 	generateRSSFeed(config, posts)
 	generateCustomPages(config, links, badges, now)
+}
+
+func generatePost(config Config, file fs.DirEntry, now string) Post {
+	filePath := filepath.Join(config.InputDir, file.Name())
+	headers, content, err := parseFileWithHeaders(filePath)
+	if err != nil {
+		log.Fatalf("Failed to process file '%s': %v", filePath, err)
+	}
+
+	requiredHeaders := []string{"title", "link", "published", "template", "description", "tags"}
+	if err := validateHeaders(headers, requiredHeaders); err != nil {
+		log.Fatalf("Validation error for file '%s': %v", filePath, err)
+	}
+
+	tagStrings := strings.Split(headers["tags"], ",")
+	var tags []Tag
+	var tagsRaw []string
+	for _, tag := range tagStrings {
+		tag = strings.TrimSpace(tag)
+		tags = append(tags, Tag{TagName: tag, URL: buildTagLink(config, tag)})
+		tagsRaw = append(tagsRaw, tag)
+	}
+
+	post := Post{
+		Title:       headers["title"],
+		Link:        headers["link"],
+		URL:         buildPostLink(config, headers["link"]),
+		Content:     content,
+		Template:    headers["template"],
+		Published:   headers["published"],
+		Description: headers["description"],
+		Tags:        tags,
+		Image:       headers["image"],
+		Favicon:     headers["favicon"],
+	}
+
+	return post
 }
 
 func generateIndexHTML(config Config, posts []Post, links Links, badges map[string]template.HTML, now string) {
@@ -385,7 +434,7 @@ func generateIndexHTML(config Config, posts []Post, links Links, badges map[stri
 	data := map[string]interface{}{
 		"Config":    config,
 		"Labels":    labels,
-		"Posts":     reverse(posts),
+		"Posts":     posts,
 		"Version":   Version,
 		"Now":       now,
 		"Canonical": url,

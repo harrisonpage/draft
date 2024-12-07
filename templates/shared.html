@@ -45,6 +45,11 @@
         <p>
         <a href="{{ .Config.URL }}">{{ .Config.BlogName }}</a>
         </p>
+        {{- if .NextPost.URL }}
+        <p>
+        Next Post: <a href="{{ .NextPost.URL }}">{{ .NextPost.Title }}</a>
+        </p>
+        {{- end }}
         <p>
         {{- range .Config.Badges }}
             <a href="{{- if .URL }}{{ .URL }}{{ else }}#{{- end}}" {{- if .ID }}id="{{ .ID }}"{{- end }}style="text-decoration: none;" title="{{ .Title }}">{{ index $.Badges .Icon }}</a>
