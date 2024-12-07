@@ -5,7 +5,6 @@ import (
 	"encoding/xml"
 	"fmt"
 	"html/template"
-	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
@@ -22,7 +21,7 @@ var Version string
 var BuildDate string
 
 /*
- * config.yaml
+ * Fields in config.yaml
  */
 type Config struct {
 	InputDir              string   `yaml:"input_dir"`
@@ -203,6 +202,7 @@ func reverse(posts []Post) []Post {
 	return reversed
 }
 
+
 func processMarkdownFiles(config Config) {
 	/*
 	 * Load SVG badges into dict: icon => svg
@@ -210,7 +210,7 @@ func processMarkdownFiles(config Config) {
 	badges := make(map[string]template.HTML)
 	for _, badge := range config.Badges {
 		badgePath := filepath.Join(config.BadgesDir, badge.Icon + ".svg")
-		content, err := ioutil.ReadFile(badgePath)
+		content, err := os.ReadFile(badgePath)
 		if err != nil {
 			log.Fatalf("Failed to read file: %s", err)
 		}
@@ -221,7 +221,7 @@ func processMarkdownFiles(config Config) {
 	/*
 	 * Fetch a list of all posts
 	 */
-	files, err := ioutil.ReadDir(config.InputDir)
+	files, err := os.ReadDir(config.InputDir)
 	if err != nil {
 		log.Fatalf("Failed to read directory '%s': %v", config.InputDir, err)
 	}
