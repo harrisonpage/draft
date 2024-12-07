@@ -9,7 +9,7 @@
         <ul>
         {{ range .Posts }}
             <li>
-                <h2>{{- if .Favicon }}<span>{{ .Favicon }}</span> {{- end }}<a href="{{ .URL }}">{{ .Title }}</a></h2>
+                <h2> <a href="{{ .URL }}">{{ .Title }}</a>{{- if .Favicon }} {{ .Favicon }}{{- end }}</h2>
                 <p><strong>{{ .Published }}</strong></p>
                 <p>{{ .Description }}</p>
                 {{- if .Image }}
