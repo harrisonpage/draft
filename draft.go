@@ -321,8 +321,8 @@ func processMarkdownFiles(config Config) {
 		htmlContent := publish([]byte(post.Content))
 
 		var nextPost Post
-		if i != len(posts)-1 {
-			nextPost = posts[i+1]
+		if i > 0 {
+			nextPost = posts[i-1]
 		} else {
 			nextPost = Post{}
 		}
