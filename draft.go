@@ -80,6 +80,7 @@ type Links struct {
 	Home string
 	Tags string
 	RSS  string
+	Sitemap string
 }
 
 type Tag struct {
@@ -94,7 +95,8 @@ type Post struct {
 	URL         string
 	Template    string
 	Content     string
-	Published   string
+	Published   string // ISO 8601 AKA time.RFC3339 e.g. 2025-01-15T06:29:00-08:00
+	PubTime     time.Time // parsed version of Published date
 	Description string
 	Tags        []Tag
 	Image       string
@@ -122,6 +124,19 @@ type RSSItem struct {
 	Description string `xml:"description"`
 	Author      string `xml:"author,omitempty"`
 	PubDate     string `xml:"pubDate"`
+}
+
+type URLSet struct {
+	XMLName xml.Name `xml:"urlset"`
+	Xmlns   string   `xml:"xmlns,attr"`
+	URLs    []URL    `xml:"url"`
+}
+
+type URL struct {
+	Loc        string `xml:"loc"`
+	LastMod    string `xml:"lastmod,omitempty"`
+	ChangeFreq string `xml:"changefreq,omitempty"`
+	Priority   string `xml:"priority,omitempty"`
 }
 
 func loadConfig(filename string) (*Config, error) {
@@ -277,6 +292,7 @@ func processMarkdownFiles(config Config) {
 	links := Links{
 		RSS:  buildRSSLink(config),
 		Tags: buildTagsLink(config),
+		Sitemap: buildSitemapLink(config),
 	}
 
 	/*
@@ -400,6 +416,7 @@ func processMarkdownFiles(config Config) {
 	generateTagsHTML(config, tagsOutputDir, tagIndex, links, badges, now)
 	generateRSSFeed(config, posts)
 	generateCustomPages(config, links, badges, now)
+	generateSitemap(config, posts)
 }
 
 func generatePost(config Config, file fs.DirEntry) Post {
@@ -420,6 +437,11 @@ func generatePost(config Config, file fs.DirEntry) Post {
 		tags = append(tags, Tag{TagName: tag, URL: buildTagLink(config, tag)})
 	}
 
+	pubTime, err := time.Parse(time.RFC3339,  headers["published"])
+	if err != nil {
+		log.Fatalf("Error parsing date for %s: %v", filePath, err)
+	}
+
 	post := Post{
 		Title:       headers["title"],
 		Link:        headers["link"],
@@ -427,6 +449,7 @@ func generatePost(config Config, file fs.DirEntry) Post {
 		Content:     content,
 		Template:    headers["template"],
 		Published:   headers["published"],
+		PubTime:     pubTime,
 		Description: headers["description"],
 		Tags:        tags,
 		Image:       headers["image"],
@@ -627,6 +650,85 @@ func generateCustomPages(config Config, links Links, badges map[string]template.
 	}
 }
 
+/*
+ * Sitemap
+ */
+
+func generateSitemap(config Config, posts []Post) {
+	var urls []URL
+
+	// Home page
+	urls = append(urls, URL{
+		Loc:        buildRootLink(config),
+		LastMod:    time.Now().Format("2006-01-02"),
+		ChangeFreq: "daily",
+		Priority:   "1.0",
+	})
+
+	// Tags page
+	urls = append(urls, URL{
+		Loc:        buildTagsLink(config),
+		LastMod:    time.Now().Format("2006-01-02"),
+		ChangeFreq: "weekly",
+		Priority:   "0.8",
+	})
+
+	// RSS page
+	urls = append(urls, URL{
+		Loc:      buildRSSLink(config),
+		LastMod:  time.Now().Format("2006-01-02"),
+		Priority: "0.7",
+	})
+
+	// Static pages from Config.Pages
+	for _, page := range config.Pages {
+		urls = append(urls, URL{
+			Loc:        buildCustomPageLink(config, page),
+			LastMod:    time.Now().Format("2006-01-02"),
+			ChangeFreq: "monthly",
+			Priority:   "0.5",
+		})
+	}
+
+	// Posts
+	for _, post := range posts {
+		urls = append(urls, URL{
+			Loc:        buildPostLink(config, post.Link),
+			LastMod:    post.PubTime.Format(time.RFC3339), // ISO 8601
+			ChangeFreq: "weekly",
+			Priority:   "0.9",
+		})
+	}
+
+	sitemap := URLSet{
+		Xmlns: "http://www.sitemaps.org/schemas/sitemap/0.9",
+		URLs:  urls,
+	}
+
+	outputFilePath := filepath.Join(config.OutputDir, "sitemap.xml")
+	file, err := os.Create(outputFilePath)
+	if err != nil {
+		fmt.Printf("Error creating sitemap file: %v\n", err)
+		return
+	}
+	defer file.Close()
+
+	encoder := xml.NewEncoder(file)
+	encoder.Indent("", "  ")
+	if err := encoder.Encode(sitemap); err != nil {
+		fmt.Printf("Error writing sitemap to file: %v\n", err)
+		return
+	}
+
+	fmt.Printf("📔 Sitemap %s\n", outputFilePath)
+}
+
+/*
+ * For functions that build paths or URLs, we check if an optional BasePath is
+ * set. This allows us to serve documents from example.com/blog rather than
+ * the root of example.com.
+ */
+
 func buildPostLink(config Config, link string) string {
 	if config.BasePath != "" {
 		return fmt.Sprintf("%s/%s/%s/", config.URL, config.BasePath, link)
@@ -669,6 +771,17 @@ func buildCustomPageLink(config Config, page Page) string {
 	return fmt.Sprintf("%s/%s", config.URL, page.Path)
 }
 
+func buildSitemapLink(config Config) string {
+	if config.BasePath != "" {
+		return fmt.Sprintf("%s/%s/%s", config.URL, config.BasePath, "sitemap.xml")
+	}
+	return fmt.Sprintf("%s/%s", config.URL, "sitemap.xml")
+}
+
+/*
+ * RSS 2.0
+ */
+
 func generateRSSFeed(config Config, posts []Post) error {
 	items := make([]RSSItem, len(posts))
 	for i, post := range posts {
@@ -677,7 +790,7 @@ func generateRSSFeed(config Config, posts []Post) error {
 			Link:        post.URL,
 			Description: post.Description,
 			Author:      post.Author,
-			PubDate:     post.Published, // .Format(time.RFC1123), // Format for RSS
+			PubDate:     post.PubTime.Format(time.RFC1123Z), // RFC 1123
 		}
 	}
 

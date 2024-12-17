@@ -63,6 +63,10 @@ Descriptions of each field in `config.yaml`:
 
 * **`pages`**: List of sub-pages to build
 
+* **`badges`**: List of badges and links
+
+## Pages
+
 The `pages` block should be in this format:
 
 ```
@@ -72,7 +76,9 @@ pages:
     path: about
 ```
 
-* **`badges`**: List of badges and links
+The about.html template will be written here: .../about/index.html.
+
+## Badges
 
 The `badges` block might look like this:
 
@@ -88,6 +94,42 @@ badges:
 
 The `icon` field refers to an SVG file in the `badges` folder. For example, `camera` maps to `badges/camera.svg`.
 [Lucide](https://lucide.dev) is an excellent resource for SVG icons.
+
+## Posts
+
+A blog post has a header and a body separated by the phrase `== cut here ==`. 
+
+Example:
+
+```
+title: Hello World
+link: hello-world
+description: Example description
+tags: meta
+image: https://cdn.harrison.photography/hello/IMG_9587x1920.jpeg
+published: 2024-11-29T18:29:00-08:00
+template: default.html
+favicon: 👋🏻
+author: harrison
+
+==cut here==
+
+## Hello World
+
+Welcome to my blog. There are many like it, but this one is mine.
+```
+
+Fields:
+
+* **`title`**: Post title, shown in HTML title tag and at the top of the page
+* **`link`**: Name of directory the post is served from e.g. http://example.com/hello-world/
+* **`description`**: Brief description of your post
+* **`tags`**: List of tags separated by comma e.g. `meta,code`
+* **`image`**: URL to an image (optional)
+* **`published`**: Post date in ISO 8601 format
+* **`template`**: Name of a file in the `templates` folder
+* **`favicon`**: Emoji associated with post (optional)
+* **`author`**: Post author (optional)
 
 ## Usage
 

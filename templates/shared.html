@@ -10,6 +10,7 @@
     <meta name="updated" content="{{ .Now }}">
     <link rel="canonical" href="{{ .Canonical }}">
     <link rel="alternate" type="application/rss+xml" title="{{ .Config.BlogName }}" href="{{ .Links.RSS }}">
+    <link rel="sitemap" type="application/xml" title="Sitemap" href="{{ .Links.Sitemap }}">
     {{- if .Config.CSSFiles }}
         {{- range .Config.CSSFiles }}
     <link rel="stylesheet" href="{{ . }}">
