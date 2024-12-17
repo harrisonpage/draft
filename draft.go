@@ -115,12 +115,14 @@ type RSSChannel struct {
 	Description string    `xml:"description"`
 	Language    string    `xml:"language"`
 	Copyright   string    `xml:"copyright,omitempty"`
+	Generator   string    `xml:"generator"`
 	Items       []RSSItem `xml:"item"`
 }
 
 type RSSItem struct {
 	Title       string `xml:"title"`
 	Link        string `xml:"link"`
+	Guid        string `xml:"guid"`
 	Description string `xml:"description"`
 	Author      string `xml:"author,omitempty"`
 	PubDate     string `xml:"pubDate"`
@@ -715,6 +717,7 @@ func generateSitemap(config Config, posts []Post) {
 
 	encoder := xml.NewEncoder(file)
 	encoder.Indent("", "  ")
+	file.WriteString(xml.Header)
 	if err := encoder.Encode(sitemap); err != nil {
 		fmt.Printf("Error writing sitemap to file: %v\n", err)
 		return
@@ -788,6 +791,7 @@ func generateRSSFeed(config Config, posts []Post) error {
 		items[i] = RSSItem{
 			Title:       post.Title,
 			Link:        post.URL,
+			Guid:        post.URL,
 			Description: post.Description,
 			Author:      post.Author,
 			PubDate:     post.PubTime.Format(time.RFC1123Z), // RFC 1123
@@ -802,6 +806,7 @@ func generateRSSFeed(config Config, posts []Post) error {
 			Description: fmt.Sprintf("Latest posts from %s", config.BlogName),
 			Language:    config.Language,
 			Copyright:   config.Copyright,
+			Generator:   "Draft/" + Version,
 			Items:       items,
 		},
 	}
