@@ -77,9 +77,9 @@ type Unfurl struct {
 }
 
 type Links struct {
-	Home string
-	Tags string
-	RSS  string
+	Home    string
+	Tags    string
+	RSS     string
 	Sitemap string
 }
 
@@ -95,7 +95,7 @@ type Post struct {
 	URL         string
 	Template    string
 	Content     string
-	Published   string // ISO 8601 AKA time.RFC3339 e.g. 2025-01-15T06:29:00-08:00
+	Published   string    // ISO 8601 AKA time.RFC3339 e.g. 2025-01-15T06:29:00-08:00
 	PubTime     time.Time // parsed version of Published date
 	Description string
 	Tags        []Tag
@@ -290,8 +290,8 @@ func processMarkdownFiles(config Config) {
 	now := time.Now().Format("January 2, 2006 at 3:04 PM")
 
 	links := Links{
-		RSS:  buildRSSLink(config),
-		Tags: buildTagsLink(config),
+		RSS:     buildRSSLink(config),
+		Tags:    buildTagsLink(config),
 		Sitemap: buildSitemapLink(config),
 	}
 
@@ -437,7 +437,7 @@ func generatePost(config Config, file fs.DirEntry) Post {
 		tags = append(tags, Tag{TagName: tag, URL: buildTagLink(config, tag)})
 	}
 
-	pubTime, err := time.Parse(time.RFC3339,  headers["published"])
+	pubTime, err := time.Parse(time.RFC3339, headers["published"])
 	if err != nil {
 		log.Fatalf("Error parsing date for %s: %v", filePath, err)
 	}
