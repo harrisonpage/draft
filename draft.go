@@ -299,6 +299,8 @@ func processMarkdownFiles(config Config) {
 		Sitemap: buildSitemapLink(config),
 	}
 
+	namespace := make(map[string]bool)
+
 	/*
 	 * Pre-process all posts so we can show back/next
 	 */
@@ -308,10 +310,31 @@ func processMarkdownFiles(config Config) {
 			continue
 		}
 		post = generatePost(config, file)
+
+		/*
+		 * Check for duplicate links in posts
+		 */
+		if _, ok := namespace[post.Link]; ok {
+			log.Fatalf("Duplicate link in post %v", post.Link)
+		} else {
+			namespace[post.Link] = true
+		}
+
 		posts = append(posts, post)
 
 		for _, tag := range post.Tags {
 			tagIndex[tag] = append(tagIndex[tag], post)
+		}
+	}
+
+	/*
+	 * Check for duplicate links across pages
+	 */
+	for _, page := range config.Pages {
+		if _, ok := namespace[page.Link]; ok {
+			log.Fatalf("Duplicate link in page %v", page.Link)
+		} else {
+			namespace[page.Link] = true
 		}
 	}
 
