@@ -292,6 +292,7 @@ func processMarkdownFiles(config Config) {
 	now := time.Now().Format("January 2, 2006 at 3:04 PM")
 
 	links := Links{
+		Home:    buildRootLink(config),
 		RSS:     buildRSSLink(config),
 		Tags:    buildTagsLink(config),
 		Sitemap: buildSitemapLink(config),
