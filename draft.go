@@ -97,6 +97,7 @@ type Post struct {
 	Content     string
 	Published   string    // ISO 8601 AKA time.RFC3339 e.g. 2025-01-15T06:29:00-08:00
 	PubTime     time.Time // parsed version of Published date
+	PubDate     string    // 15-Jan-2025
 	Description string
 	Tags        []Tag
 	Image       string
@@ -452,6 +453,7 @@ func generatePost(config Config, file fs.DirEntry) Post {
 		Content:     content,
 		Template:    headers["template"],
 		Published:   headers["published"],
+		PubDate:     pubTime.Format("02-Jan-2006"),
 		PubTime:     pubTime,
 		Description: headers["description"],
 		Tags:        tags,
@@ -489,6 +491,8 @@ func generateIndexHTML(config Config, posts []Post, links Links, badges map[stri
 		Locale:      config.Locale,
 	}
 
+	htmlContent := publish([]byte(posts[0].Content))
+
 	data := map[string]interface{}{
 		"Config":    config,
 		"Labels":    labels,
@@ -499,6 +503,9 @@ func generateIndexHTML(config Config, posts []Post, links Links, badges map[stri
 		"Links":     links,
 		"Unfurl":    unfurl,
 		"Badges":    badges,
+		"Content":   template.HTML(htmlContent),
+		"Title":     posts[0].Title,
+		"Published": posts[0].Published,
 	}
 
 	if err := tmpl.Execute(indexFile, data); err != nil {
