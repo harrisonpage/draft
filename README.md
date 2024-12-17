@@ -73,7 +73,7 @@ The `pages` block should be in this format:
 pages:
   - template: about.html
     title: About
-    path: about
+    link: about
 ```
 
 The about.html template will be written here: .../about/index.html.

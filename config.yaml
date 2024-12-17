@@ -38,10 +38,10 @@ js_files:
 pages:
   - template: about.html
     title: About
-    path: about
+    link: about
   - template: colophon.html
     title: Colophon
-    path: colophon
+    link: colophon
 url: "https://example.com"
 base_path: "draft"
 back_label: "Back"

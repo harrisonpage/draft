@@ -59,7 +59,7 @@ type Badge struct {
 type Page struct {
 	Template string
 	Title    string
-	Path     string
+	Link     string
 }
 
 type Labels struct {
@@ -663,7 +663,7 @@ func generateCustomPages(config Config, links Links, badges map[string]template.
 			"Badges":    badges,
 		}
 
-		customPageDir := filepath.Join(config.OutputDir, page.Path)
+		customPageDir := filepath.Join(config.OutputDir, page.Link)
 		if err := os.MkdirAll(customPageDir, 0755); err != nil {
 			log.Fatalf("Failed to create directory '%s': %v", customPageDir, err)
 		}
@@ -800,9 +800,9 @@ func buildRSSLink(config Config) string {
 
 func buildCustomPageLink(config Config, page Page) string {
 	if config.BasePath != "" {
-		return fmt.Sprintf("%s/%s/%s/", config.URL, config.BasePath, page.Path)
+		return fmt.Sprintf("%s/%s/%s/", config.URL, config.BasePath, page.Link)
 	}
-	return fmt.Sprintf("%s/%s", config.URL, page.Path)
+	return fmt.Sprintf("%s/%s", config.URL, page.Link)
 }
 
 func buildSitemapLink(config Config) string {
