@@ -84,15 +84,13 @@ The `badges` block might look like this:
 
 ```
 badges:
-  - title: "Home Page"
-    url: "https://harrison.page"
-    icon: "home"
   - title: "Photography"
     url: "https://harrison.photography"
     icon: "camera"
 ```
 
 The `icon` field refers to an SVG file in the `badges` folder. For example, `camera` maps to `badges/camera.svg`.
+
 [Lucide](https://lucide.dev) is an excellent resource for SVG icons.
 
 ## Posts
