@@ -20,7 +20,21 @@ import (
 
 var Version string
 var BuildDate string
-var requiredHeaders = []string{"title", "link", "published", "template", "description", "tags"}
+
+/*
+ * List of post headers and whether they are required
+ */
+var Headers = map[string]bool{
+	"title": true,
+	"link": true,
+	"published": true,
+	"template": true,
+	"description": true,
+	"tags": false,
+	"favicon": false,
+	"author": false,
+	"image": false,
+}
 
 /*
  * Fields in config.yaml
@@ -208,12 +222,23 @@ func parseFileWithHeaders(filePath string) (map[string]string, string, error) {
 	return headers, contentBuilder.String(), nil
 }
 
-func validateHeaders(headers map[string]string, required []string) error {
-	for _, key := range required {
-		if _, ok := headers[key]; !ok {
-			return fmt.Errorf("missing required header: %s", key)
+func validateHeaders(headers map[string]string, knownHeaders map[string]bool, filePath string) error {
+	// Check for missing required headers
+	for header, required := range knownHeaders {
+		if required {
+			if _, exists := headers[header]; !exists {
+				return fmt.Errorf("Post %s is missing a required header: %s", filePath, header)
+			}
 		}
 	}
+
+	// Check for unknown headers
+	for header := range headers {
+		if _, exists := knownHeaders[header]; !exists {
+			return fmt.Errorf("Post %s contains unknown header: %s", filePath, header)
+		}
+	}
+
 	return nil
 }
 
@@ -453,7 +478,7 @@ func generatePost(config Config, file fs.DirEntry) Post {
 		log.Fatalf("Failed to process file '%s': %v", filePath, err)
 	}
 
-	if err := validateHeaders(headers, requiredHeaders); err != nil {
+	if err := validateHeaders(headers, Headers, filePath); err != nil {
 		log.Fatalf("Validation error for file '%s': %v", filePath, err)
 	}
 
@@ -529,6 +554,7 @@ func generateIndexHTML(config Config, posts []Post, links Links, badges map[stri
 		"Content":   template.HTML(htmlContent),
 		"Title":     posts[0].Title,
 		"Published": posts[0].Published,
+		"Image":     posts[0].Image,
 	}
 
 	if err := tmpl.Execute(indexFile, data); err != nil {

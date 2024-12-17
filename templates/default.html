@@ -3,8 +3,12 @@
 {{ template "header" . }}
 <body>
     <header>
-        <h1>{{ .Post.Title }}</h1>
-        <p>Published: {{ .Post.Published }}</p>
+        <h1>{{ .Title }}</h1>
+        <p>Published: {{ .Published }}</p>
+        image={{ .Image }}
+        {{- if .Image }}
+        <img src="{{ .Image }}">
+        {{- end }}
         {{- if .Tags }}<p>
         Tags:
             {{ range .Tags }}
