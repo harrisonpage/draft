@@ -57,6 +57,7 @@ func TestValidateHeaders(t *testing.T) {
 		"tags":        false,
 		"favicon":     false,
 		"author":      false,
+		"status":      true,
 	}
 
 	tests := []struct {
@@ -76,6 +77,7 @@ func TestValidateHeaders(t *testing.T) {
 				"published":   "2024-12-17",
 				"template":    "default",
 				"description": "A post description",
+				"status": "public",
 			},
 			knownHeaders: knownHeaders,
 			filePath:     "post1.yaml",
@@ -87,6 +89,7 @@ func TestValidateHeaders(t *testing.T) {
 			headers: map[string]string{
 				"title": "My Post",
 				"link":  "https://example.com",
+				"status": "public",
 			},
 			knownHeaders: knownHeaders,
 			filePath:     "post2.yaml",
@@ -104,6 +107,7 @@ missing a required header: template`,
 				"link":      "https://example.com",
 				"published": "2024-12-17",
 				"unknown":   "invalid",
+				"status": "public",
 			},
 			knownHeaders: knownHeaders,
 			filePath:     "post3.yaml",
@@ -124,6 +128,7 @@ contains unknown header: unknown`,
 				"description": "A description",
 				"tags":        "go, testing",
 				"favicon":     "icon.png",
+				"status": "public",
 			},
 			knownHeaders: knownHeaders,
 			filePath:     "post4.yaml",
@@ -140,8 +145,10 @@ contains unknown header: unknown`,
 missing a required header: description
 missing a required header: link
 missing a required header: published
+missing a required header: status
 missing a required header: template
-missing a required header: title`,
+missing a required header: title
+Invalid value for status: `,
 		},
 		// Empty knownHeaders map
 		{
@@ -153,7 +160,8 @@ missing a required header: title`,
 			filePath:     "post6.yaml",
 			shouldFail:   true,
 			expectedError: `Post post6.yaml has the following issues:
-contains unknown header: title`,
+contains unknown header: title
+Invalid value for status: `,
 		},
 	}
 

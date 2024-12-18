@@ -109,6 +109,7 @@ published: 2024-11-29T18:29:00-08:00
 template: default.html
 favicon: 👋🏻
 author: harrison
+status: public
 
 ==cut here==
 
@@ -128,6 +129,7 @@ Fields:
 * **`template`**: Name of a file in the `templates` folder
 * **`favicon`**: Emoji associated with post (optional)
 * **`author`**: Post author (optional)
+* **`status`**: `public` or `private`
 
 ## Usage
 

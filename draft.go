@@ -24,6 +24,18 @@ import (
 var Version string
 var BuildDate string
 
+type PostStatus string
+
+const (
+	Public  PostStatus = "public"
+	Private PostStatus = "private"
+)
+
+var ValidPostStatuses = map[PostStatus]struct{}{
+	Public:  {},
+	Private: {},
+}
+
 /*
  * List of post headers and whether they are required
  */
@@ -37,6 +49,7 @@ var Headers = map[string]bool{
 	"favicon":     false,
 	"author":      false,
 	"image":       false,
+	"status":      false,
 }
 
 /*
@@ -119,6 +132,7 @@ type Post struct {
 	Tags        []Tag
 	Image       string
 	Favicon     string
+	Status      string
 }
 
 type RSSFeed struct {
@@ -248,6 +262,10 @@ func validateHeaders(headers map[string]string, knownHeaders map[string]bool, fi
 		if _, exists := knownHeaders[header]; !exists {
 			errorMessages = append(errorMessages, fmt.Sprintf("contains unknown header: %s", header))
 		}
+	}
+
+	if _, valid := ValidPostStatuses[PostStatus(headers["status"])]; ! valid {
+		errorMessages = append(errorMessages, fmt.Sprintf("Invalid value for status: %s", headers["status"]))
 	}
 
 	if len(errorMessages) > 0 {
@@ -385,6 +403,16 @@ func processMarkdownFiles(config Config) {
 			continue
 		}
 		post = generatePost(config, file)
+
+		/*
+		 * Skip private posts
+		 */
+		status := PostStatus(post.Status)
+		fmt.Printf("%s: status=%s (%s)\n", post.Link, post.Status, status)
+		if status == Private {
+			fmt.Printf("📕 Post: %s [private] skipping...\n", post.Link)
+			continue
+		}
 
 		/*
 		 * Check for duplicate links in posts
@@ -561,6 +589,7 @@ func generatePost(config Config, file fs.DirEntry) Post {
 		Tags:        tags,
 		Image:       headers["image"],
 		Favicon:     headers["favicon"],
+		Status:      headers["status"],
 	}
 
 	return post
@@ -702,7 +731,7 @@ func generateTagsHTML(config Config, tagsOutputDir string, tagIndex map[Tag][]Po
 		if err := tagPageTemplate.Execute(tagFile, data); err != nil {
 			log.Fatalf("Failed to generate tag page '%s': %v", tagFilePath, err)
 		}
-		fmt.Printf("📕 Tag: %s\n", tag.TagName)
+		fmt.Printf("📓 Tag: %s\n", tag.TagName)
 	}
 }
 
