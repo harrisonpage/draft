@@ -11,7 +11,7 @@
             {{ range .Posts }}
             <tr>
                 {{- if .Image }}<td width="33%"><img src="{{ .Image }}"></td>{{- end }}
-                <td width="66%"> <a href="{{ .URL }}">{{ .Title }}</a>
+                <td width="66%"> {{- if .Favicon }}{{ .Favicon }}{{- end }} <a href="{{ .URL }}">{{ .Title }}</a>
                 <div>{{ .PubDate }}</div></td>
             </tr>
             {{- end}}
