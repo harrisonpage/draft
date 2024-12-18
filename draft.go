@@ -77,6 +77,7 @@ type Config struct {
 	URL                   string   `yaml:"url"`
 	BasePath              string   `yaml:"base_path"`
 	Badges                []Badge  `yaml:"badges"`
+	FediverseCreator      string   `yaml:"fediverse_creator"`
 }
 
 type Badge struct {
@@ -264,7 +265,7 @@ func validateHeaders(headers map[string]string, knownHeaders map[string]bool, fi
 		}
 	}
 
-	if _, valid := ValidPostStatuses[PostStatus(headers["status"])]; ! valid {
+	if _, valid := ValidPostStatuses[PostStatus(headers["status"])]; !valid {
 		errorMessages = append(errorMessages, fmt.Sprintf("Invalid value for status: %s", headers["status"]))
 	}
 

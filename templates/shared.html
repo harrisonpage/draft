@@ -23,20 +23,23 @@
     {{- end }}
     <meta name="robots" content="index,follow">
     {{- if .Unfurl }}
-    <meta property="og:url" content="{{ .Unfurl.URL }}" >
-    <meta property="og:title" content="{{ .Unfurl.Title }}" >
-    <meta property="og:description" content="{{ .Unfurl.Description }}" >
-    <meta property="og:site_name" content="{{ .Unfurl.SiteName }}" >
-    <meta property="og:locale" content="{{ .Unfurl.Locale }}" >
+    <meta property="og:url" content="{{ .Unfurl.URL }}">
+    <meta property="og:title" content="{{ .Unfurl.Title }}">
+    <meta property="og:description" content="{{ .Unfurl.Description }}">
+    <meta property="og:site_name" content="{{ .Unfurl.SiteName }}">
+    <meta property="og:locale" content="{{ .Unfurl.Locale }}">
     {{- if .Unfurl.Tags }}
-    <meta name="twitter:label1" content="Tags" >
-    <meta name="twitter:data1" content="{{ .Unfurl.Tags }}" >
+    <meta name="twitter:label1" content="Tags">
+    <meta name="twitter:data1" content="{{ .Unfurl.Tags }}">
     {{- end }}
     {{- if .Unfurl.Author }}
-    <meta name="twitter:label2" content="Author" >
-    <meta name="twitter:data2" content="{{ .Unfurl.Author }}" >
+    <meta name="twitter:label2" content="Author">
+    <meta name="twitter:data2" content="{{ .Unfurl.Author }}">
     {{- end }}
-    <meta name="twitter:card" content="summary_large_image" >
+    <meta name="twitter:card" content="summary_large_image">
+    {{- end }}
+    {{- if .Config.FediverseCreator }}
+    <meta name="fediverse:creator" content="{{ .Config.FediverseCreator }}">
     {{- end }}
 </head>
 {{end}}

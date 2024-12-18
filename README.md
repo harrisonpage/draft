@@ -65,6 +65,8 @@ Descriptions of each field in `config.yaml`:
 
 * **`badges`**: List of badges and links
 
+* **`fediverse_creator`**: Optional Mastodon username e.g. `@harrisonpage@defcon.social`
+
 ## Pages
 
 The `pages` block should be in this format:
@@ -92,6 +94,10 @@ badges:
 The `icon` field refers to an SVG file in the `badges` folder. For example, `camera` maps to `badges/camera.svg`.
 
 [Lucide](https://lucide.dev) is an excellent resource for SVG icons.
+
+## Fediverse Integration
+
+* If the `fediverse_creator` configuration field is filled out, a `fediverse:creator` header will appear on all pages
 
 ## Posts
 
