@@ -3,12 +3,15 @@ package main
 import (
 	"bufio"
 	"encoding/xml"
+	"errors"
 	"fmt"
 	"html/template"
 	"io/fs"
 	"log"
 	"os"
 	"path/filepath"
+	"regexp"
+	"sort"
 	"strings"
 	"time"
 
@@ -25,15 +28,15 @@ var BuildDate string
  * List of post headers and whether they are required
  */
 var Headers = map[string]bool{
-	"title": true,
-	"link": true,
-	"published": true,
-	"template": true,
+	"title":       true,
+	"link":        true,
+	"published":   true,
+	"template":    true,
 	"description": true,
-	"tags": false,
-	"favicon": false,
-	"author": false,
-	"image": false,
+	"tags":        false,
+	"favicon":     false,
+	"author":      false,
+	"image":       false,
 }
 
 /*
@@ -223,20 +226,67 @@ func parseFileWithHeaders(filePath string) (map[string]string, string, error) {
 }
 
 func validateHeaders(headers map[string]string, knownHeaders map[string]bool, filePath string) error {
-	// Check for missing required headers
+	var errorMessages []string
+
+	// Check for missing required headers in sorted order
+	var requiredHeaders []string
 	for header, required := range knownHeaders {
 		if required {
-			if _, exists := headers[header]; !exists {
-				return fmt.Errorf("Post %s is missing a required header: %s", filePath, header)
-			}
+			requiredHeaders = append(requiredHeaders, header)
+		}
+	}
+	sort.Strings(requiredHeaders)
+
+	for _, header := range requiredHeaders {
+		if _, exists := headers[header]; !exists {
+			errorMessages = append(errorMessages, fmt.Sprintf("missing a required header: %s", header))
 		}
 	}
 
-	// Check for unknown headers
+	// Check for unknown headers (order does not matter here)
 	for header := range headers {
 		if _, exists := knownHeaders[header]; !exists {
-			return fmt.Errorf("Post %s contains unknown header: %s", filePath, header)
+			errorMessages = append(errorMessages, fmt.Sprintf("contains unknown header: %s", header))
 		}
+	}
+
+	if len(errorMessages) > 0 {
+		return fmt.Errorf("Post %s has the following issues:\n%s", filePath, strings.Join(errorMessages, "\n"))
+	}
+
+	return nil
+}
+
+/*
+ * Sanity check: Validating user-provided link names even if the user is, like,
+ * super smart and never makes mistakes.
+ */
+
+func validateLinkName(link string) error {
+	// Disallow reserved names
+	if link == "." || link == ".." {
+		return errors.New("invalid name: '.' and '..' are not allowed")
+	}
+
+	// Disallow path traversal patterns
+	if strings.Contains(link, "..") {
+		return errors.New("invalid name: path traversal patterns like '..' are not allowed")
+	}
+
+	// Disallow illegal characters
+	illegalChars := regexp.MustCompile(`[<>:"/\\|?*\n\r\t]`)
+	if illegalChars.MatchString(link) {
+		return errors.New("invalid name: contains illegal characters (e.g., < > : \" / \\ | ? *)")
+	}
+
+	// Check for leading/trailing whitespace
+	if strings.TrimSpace(link) != link {
+		return errors.New("invalid name: leading or trailing whitespace is not allowed")
+	}
+
+	// Ensure the name is not empty and is of reasonable length
+	if len(link) == 0 || len(link) > 255 {
+		return errors.New("invalid name: must be between 1 and 255 characters long")
 	}
 
 	return nil
@@ -482,6 +532,10 @@ func generatePost(config Config, file fs.DirEntry) Post {
 		log.Fatalf("Validation error for file '%s': %v", filePath, err)
 	}
 
+	if err := validateLinkName(headers["link"]); err != nil {
+		log.Fatalf("Validation error for file '%s': %v", filePath, err)
+	}
+
 	tagStrings := strings.Split(headers["tags"], ",")
 	var tags []Tag
 	for _, tag := range tagStrings {
@@ -539,8 +593,6 @@ func generateIndexHTML(config Config, posts []Post, links Links, badges map[stri
 		Locale:      config.Locale,
 	}
 
-	htmlContent := publish([]byte(posts[0].Content))
-
 	data := map[string]interface{}{
 		"Config":    config,
 		"Labels":    labels,
@@ -551,10 +603,6 @@ func generateIndexHTML(config Config, posts []Post, links Links, badges map[stri
 		"Links":     links,
 		"Unfurl":    unfurl,
 		"Badges":    badges,
-		"Content":   template.HTML(htmlContent),
-		"Title":     posts[0].Title,
-		"Published": posts[0].Published,
-		"Image":     posts[0].Image,
 	}
 
 	if err := tmpl.Execute(indexFile, data); err != nil {

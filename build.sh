@@ -5,4 +5,5 @@ shopt -s inherit_errexit nullglob
 cd "$(dirname "$0")"
 
 export DRAFT_BUILD_VERSION=1.0.2
+make test
 make

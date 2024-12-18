@@ -69,7 +69,7 @@ Descriptions of each field in `config.yaml`:
 
 The `pages` block should be in this format:
 
-```
+```yaml
 pages:
   - template: about.html
     title: About
@@ -82,7 +82,7 @@ The about.html template will be written here: .../about/index.html.
 
 The `badges` block might look like this:
 
-```
+```yaml
 badges:
   - title: "Photography"
     url: "https://harrison.photography"
@@ -95,11 +95,11 @@ The `icon` field refers to an SVG file in the `badges` folder. For example, `cam
 
 ## Posts
 
-A blog post has a header and a body separated by the phrase `== cut here ==`. 
+A blog post has a header and a body separated by the phrase `== cut here ==`.
 
 Example:
 
-```
+```text
 title: Hello World
 link: hello-world
 description: Example description
@@ -131,7 +131,7 @@ Fields:
 
 ## Usage
 
-```
+```text
 ./draft config.yaml
 ```
 

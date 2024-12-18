@@ -3,12 +3,8 @@
 {{ template "header" . }}
 <body>
     <header>
-        <h1>{{ .Title }}</h1>
-        <p>Published: {{ .Published }}</p>
-        image={{ .Image }}
-        {{- if .Image }}
-        <img src="{{ .Image }}">
-        {{- end }}
+        <h1>{{ .Post.Title }}</h1>
+        <p>Published: {{ .Post.Published }}</p>
         {{- if .Tags }}<p>
         Tags:
             {{ range .Tags }}
@@ -19,6 +15,9 @@
         <p><a href="../">{{ .Config.BackLabel }}</a></p>
     </header>
     <main>
+        {{- if .Post.Image }}
+        <img src="{{ .Post.Image }}">
+        {{- end }}
         {{ .Content }}
     </main>
     {{ template "footer" . }}

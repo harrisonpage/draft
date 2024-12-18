@@ -6,16 +6,13 @@
         <h1>{{ .Config.BlogName }}</h1>
     </header>
     <main>
-        <h1>{{ .Title }}</h1>
-        <p>Published: {{ .Published }}</p>
-        {{ .Content }}
-        <h2>More Posts</h2>
+        <h2>Posts</h2>
         <table>
             {{ range .Posts }}
             <tr>
-                {{- if .Favicon }}<td>{{ .Favicon }}</td>{{- end }}
-                <td> <a href="{{ .URL }}">{{ .Title }}</a> </td>
-                <td> {{ .PubDate }} </td>
+                {{- if .Image }}<td width="33%"><img src="{{ .Image }}"></td>{{- end }}
+                <td width="66%"> <a href="{{ .URL }}">{{ .Title }}</a>
+                <div>{{ .PubDate }}</div></td>
             </tr>
             {{- end}}
         </table>

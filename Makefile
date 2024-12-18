@@ -2,6 +2,9 @@ OUTPUT = draft
 
 all: build
 
+test:
+	go test
+
 build:
 ifndef DRAFT_BUILD_VERSION
 	$(error DRAFT_BUILD_VERSION is not set. Please export DRAFT_BUILD_VERSION as an environment variable.)
