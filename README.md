@@ -101,11 +101,12 @@ The `icon` field refers to an SVG file in the `badges` folder. For example, `cam
 
 ## Posts
 
-A blog post has a header and a body separated by the phrase `== cut here ==`.
+A blog post has a header and a body. The header is surrounded by three dashes: YAML front matter.
 
 Example:
 
-```text
+```markdown
+---
 title: Hello World
 link: hello-world
 description: Example description
@@ -116,8 +117,7 @@ template: default.html
 favicon: 👋🏻
 author: harrison
 status: public
-
-==cut here==
+---
 
 ## Hello World
 
