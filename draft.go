@@ -969,14 +969,19 @@ func main() {
 		os.Exit(1)
 	}
 
+	fmt.Printf("📗 Draft version %s (%s)\n", Version, BuildDate)
+	fmt.Printf("🤓 https://github.com/harrisonpage/draft\n")
+
 	configPath := os.Args[1]
 	config, err := loadConfig(configPath)
 	if err != nil {
-		fmt.Printf("Error loading configuration: %v\n", err)
+        if configPath == "--help" || configPath == "-h" || configPath == "help" {
+		    fmt.Printf("🆘 See also: https://harrison.blog/announcing-draft/\n")
+        } else {
+		    fmt.Printf("Error loading configuration: %v\n", err)
+        }
 		os.Exit(1)
 	}
 
-	fmt.Printf("📗 Draft version %s (%s)\n", Version, BuildDate)
-	fmt.Printf("🤓 https://github.com/harrisonpage/draft\n")
 	processMarkdownFiles(*config)
 }
