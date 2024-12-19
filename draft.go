@@ -212,13 +212,20 @@ func parseFileWithHeaders(filePath string) (map[string]string, string, error) {
 	headers := make(map[string]string)
 	var contentBuilder strings.Builder
 	yip := false
+	i := 0
 
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
+		i += 1
 		line := scanner.Text()
-		if line == "==cut here==" {
-			yip = true
-			continue
+		if line == "---" {
+			if i == 1 {
+				// skip first delimiter
+				continue
+			} else {
+				// end of header metadata
+				yip = true
+			}
 		}
 
 		if yip {
@@ -409,7 +416,6 @@ func processMarkdownFiles(config Config) {
 		 * Skip private posts
 		 */
 		status := PostStatus(post.Status)
-		fmt.Printf("%s: status=%s (%s)\n", post.Link, post.Status, status)
 		if status == Private {
 			fmt.Printf("📕 Post: %s [private] skipping...\n", post.Link)
 			continue
@@ -975,11 +981,11 @@ func main() {
 	configPath := os.Args[1]
 	config, err := loadConfig(configPath)
 	if err != nil {
-        if configPath == "--help" || configPath == "-h" || configPath == "help" {
-		    fmt.Printf("🆘 See also: https://harrison.blog/announcing-draft/\n")
-        } else {
-		    fmt.Printf("Error loading configuration: %v\n", err)
-        }
+		if configPath == "--help" || configPath == "-h" || configPath == "help" {
+			fmt.Printf("🆘 See also: https://harrison.blog/announcing-draft/\n")
+		} else {
+			fmt.Printf("Error loading configuration: %v\n", err)
+		}
 		os.Exit(1)
 	}
 
