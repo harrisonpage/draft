@@ -144,35 +144,128 @@ The `templates` folder contains these files:
 * **`tag.html`**: Page showcasing individual tags, example [here](https://harrison.blog/tags/code/)
 * **`shared.html`**: Top and bottom matter shared among all pages
 
-### Available Template Variables
+### Config Variables
 
 Each variable in the template references a field in the `Config` structure and corresponds to a YAML configuration entry. Variables can be accessed using the `{{ .Config.<FieldName> }}` syntax in the templates.
 
-| **Template Variable**          | **YAML Field**              | **Description**                                       |
-|---------------------------------|-----------------------------|-------------------------------------------------------|
-| `{{ .Config.InputDir }}`        | `input_dir`                 | Directory containing input files for processing.      |
-| `{{ .Config.TemplatesDir }}`    | `templates_dir`             | Directory containing HTML templates.                  |
-| `{{ .Config.OutputDir }}`       | `output_dir`                | Directory where the generated files are saved.        |
-| `{{ .Config.BadgesDir }}`       | `badges_dir`                | Directory containing SVG badge files.                 |
-| `{{ .Config.IndexTemplatePath }}` | `index_template_path`     | Path to the main index template file.                 |
-| `{{ .Config.TagsIndexTemplatePath }}` | `tags_index_template_path` | Path to the tags index template file.             |
-| `{{ .Config.TagPageTemplatePath }}` | `tag_page_template_path` | Path to the individual tag page template file.        |
-| `{{ .Config.Author }}`          | `author`                   | Author's name for the blog.                           |
-| `{{ .Config.BlogName }}`        | `blog_name`                | The name of the blog.                                 |
-| `{{ .Config.Description }}`     | `description`              | A brief description of the blog.                      |
-| `{{ .Config.Email }}`           | `email`                    | Contact email address for the blog.                   |
-| `{{ .Config.Copyright }}`       | `copyright`                | Copyright information for the blog.                   |
-| `{{ .Config.Language }}`        | `language`                 | Default language of the blog content (e.g., "en").    |
-| `{{ .Config.Locale }}`          | `locale`                   | Locale information for the blog (e.g., "en_US").      |
-| `{{ .Config.Lang }}`            | `lang`                     | Language attribute for HTML documents.                |
-| `{{ .Config.BackLabel }}`       | `back_label`               | Text for a "back" link or button in templates.        |
-| `{{ .Config.CSSFiles }}`        | `css_files`                | List of CSS files to include in the blog.             |
-| `{{ .Config.JSFiles }}`         | `js_files`                 | List of JavaScript files to include in the blog.      |
-| `{{ .Config.Pages }}`           | `pages`                    | List of additional pages to generate.                 |
-| `{{ .Config.URL }}`             | `url`                      | Base URL of the blog.                                 |
-| `{{ .Config.BasePath }}`        | `base_path`                | Base path for generated URLs.                         |
-| `{{ .Config.Badges }}`          | `badges`                   | List of badges to display in the blog.                |
-| `{{ .Config.FediverseCreator }}` | `fediverse_creator`        | Fediverse account of the blog creator.                |
+| **Template Variable**           | **YAML Field**                   | **Description**                                       |
+|---------------------------------|----------------------------------|-------------------------------------------------------|
+| `{{ .Config.InputDir }}`              | `input_dir`                | Directory containing input files for processing.      |
+| `{{ .Config.TemplatesDir }}`          | `templates_dir`            | Directory containing HTML templates.                  |
+| `{{ .Config.OutputDir }}`             | `output_dir`               | Directory where the generated files are saved.        |
+| `{{ .Config.BadgesDir }}`             | `badges_dir`               | Directory containing SVG badge files.                 |
+| `{{ .Config.IndexTemplatePath }}`     | `index_template_path`      | Path to the main index template file.                 |
+| `{{ .Config.TagsIndexTemplatePath }}` | `tags_index_template_path` | Path to the tags index template file.                 |
+| `{{ .Config.TagPageTemplatePath }}`   | `tag_page_template_path`   | Path to the individual tag page template file.        |
+| `{{ .Config.Author }}`                | `author`                   | Author's name for the blog.                           |
+| `{{ .Config.BlogName }}`              | `blog_name`                | The name of the blog.                                 |
+| `{{ .Config.Description }}`           | `description`              | A brief description of the blog.                      |
+| `{{ .Config.Email }}`                 | `email`                    | Contact email address for the blog.                   |
+| `{{ .Config.Copyright }}`             | `copyright`                | Copyright information for the blog.                   |
+| `{{ .Config.Language }}`              | `language`                 | Default language of the blog content (e.g., "en").    |
+| `{{ .Config.Locale }}`                | `locale`                   | Locale information for the blog (e.g., "en_US").      |
+| `{{ .Config.Lang }}`                  | `lang`                     | Language attribute for HTML documents.                |
+| `{{ .Config.BackLabel }}`             | `back_label`               | Text for a "back" link or button in templates.        |
+| `{{ .Config.CSSFiles }}`              | `css_files`                | List of CSS files to include in the blog.             |
+| `{{ .Config.JSFiles }}`               | `js_files`                 | List of JavaScript files to include in the blog.      |
+| `{{ .Config.Pages }}`                 | `pages`                    | List of additional pages to generate.                 |
+| `{{ .Config.URL }}`                   | `url`                      | Base URL of the blog.                                 |
+| `{{ .Config.BasePath }}`              | `base_path`                | Base path for generated URLs.                         |
+| `{{ .Config.Badges }}`                | `badges`                   | List of badges to display in the blog.                |
+| `{{ .Config.FediverseCreator }}`      | `fediverse_creator`        | Fediverse account of the blog creator.                |
+
+### Posts Variables
+
+Used in pages that list all posts. Variables can be accessed using the `{{ .Post.<FieldName> }}` syntax in the templates.
+
+| **Template Variable**           | **Description**                                                                             |
+|---------------------------------|---------------------------------------------------------------------------------------------|
+| `{{ .Post.Title }}`             | The title of the post.                                                                      |
+| `{{ .Post.Author }}`            | The author of the post.                                                                     |
+| `{{ .Post.Link }}`              | A hyperlink associated with the post.                                                       |
+| `{{ .Post.URL }}`               | The URL of the post.                                                                        |
+| `{{ .Post.Template }}`          | The template used to render the post.                                                       |
+| `{{ .Post.Content }}`           | The main content of the post in HTML format.                                                |
+| `{{ .Post.Published }}`         | The published date of the post in ISO 8601 format (e.g., `2025-01-15T06:29:00-08:00`).      |
+| `{{ .Post.PubTime }}`           | The `time.Time` parsed version of the published date.                                       |
+| `{{ .Post.PubDate }}`           | The published date of the post in a human-readable format (e.g., `15-Jan-2025`).            |
+| `{{ .Post.Description }}`       | A brief description or summary of the post.                                                 |
+| `{{ .Post.Tags }}`              | A list of tags associated with the post.                                                    |
+| `{{ .Post.Image }}`             | The URL of an image associated with the post.                                               |
+| `{{ .Post.Favicon }}`           | The URL of a favicon associated with the post.                                              |
+| `{{ .Post.Status }}`            | The status of the post (e.g., "draft" or "published").                                      |
+| `{{ .Content }}`                | Rendered HTML                                                                               |
+
+### Post Variables
+
+Used in pages that reference a single post.
+
+| **Template Variable**          | **Description**                 |
+| `{{ .Title }}`                 | Post Title                      |
+| `{{ .URL }}`                   | Post URL                        |
+| `{{ .Author }}`                | Post Author                     |
+| `{{ .Description }}`           | Post Description                |
+| `{{ .SiteName }}`              | Name of Blog                    |
+| `{{ .Tags }}`                  | List of tags separated by comma |
+
+### Unfurl Variables
+
+Variables specific to link previews or unfurls.
+
+| **Template Variable**          |  **Description**                    |
+| `{{ .Unfurl.Title }}`          | Post Title                          |
+| `{{ .Unfurl.URL }}`            | Post URL                            |
+| `{{ .Unfurl.Author }}`         | Post Author                         |
+| `{{ .Unfurl.Description }}`    | Post Description                    |
+| `{{ .Unfurl.SiteName }}`       | Name of Blog                        |
+| `{{ .Unfurl.Tags }}`           | List of tags separated by comma     |
+| `{{ .Unfurl.Locale }}`         | Locale information from config file |
+
+### Tags Variables
+
+Variables can be accessed using the `{{ .Tag.<FieldName> }}` syntax in the templates.
+
+| **Template Variable**   | **Description**                          |
+|--------------------------|-----------------------------------------|
+| `{{ .Tag.TagName }}`     | The name of the tag.                    |
+| `{{ .Tag.URL }}`         | The URL associated with the tag.        |
+
+### Context Dependent Variables
+
+| **Template Variable**          |  **Description** |
+|--------------------------------|------------------|
+| `{{ .Labels.Title }}`          | Page title       |
+
+### Badges Variables
+
+Reference any badge from the `badges` folder like so:
+
+```text
+{{ index $.Badges "home.svg" }}
+```
+
+### Navigation
+
+On templates that render a single post, use the `PreviousPost` and `NextPost` variables like so:
+
+```html
+<a href="{{ .PreviousPost.URL }}" title="{{ .PreviousPost.Title }}">back</a>
+<a href="{{ .NextPost.URL }}" title="{{ .NextPost.Title }}">next</a>
+```
+
+### Miscellaneous Variables
+
+| **Template Variable**    | **Description**                          |
+|--------------------------|------------------------------------------|
+| `{{ .Version }}`         | Draft version number                     |
+| `{{ .Now }}`             | Current date                             |
+| `{{ .Canonical }}`       | URL used by the canonical meta tag       |
+| `{{ .Links.Home }}`      | The URL for the home page.               |
+| `{{ .Links.Tags }}`      | The URL for the tags page.               |
+| `{{ .Links.RSS }}`       | The URL for the RSS feed.                |
+| `{{ .Links.Sitemap }}`   | The URL for the sitemap.                 |
+
+See the contents of the `templates` folder for examples of how these variables are used.
 
 ### Examples
 
