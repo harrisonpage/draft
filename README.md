@@ -144,6 +144,13 @@ The `templates` folder contains these files:
 * **`tag.html`**: Page showcasing individual tags, example [here](https://harrison.blog/tags/code/)
 * **`shared.html`**: Top and bottom matter shared among all pages
 
+### Examples
+
+These templates are examples of custom pages as specified in the configuration file.
+
+* about.html
+* colophon.html
+
 ### Config Variables
 
 Each variable in the template references a field in the `Config` structure and corresponds to a YAML configuration entry. Variables can be accessed using the `{{ .Config.<FieldName> }}` syntax in the templates.
@@ -268,13 +275,6 @@ On templates that render a single post, use the `PreviousPost` and `NextPost` va
 | `{{ .Links.Sitemap }}`   | The URL for the sitemap                  |
 
 See the contents of the `templates` folder for examples of how these variables are used.
-
-### Examples
-
-These templates are examples of custom pages as specified in the configuration file.
-
-* about.html
-* colophon.html
 
 ## Posts
 
