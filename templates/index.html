@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="{{ .Config.Lang }}">
-{{ template "header" . }}
+{{- template "header" . }}
 <body>
     <header>
         <h1>{{ .Config.BlogName }}</h1>
@@ -8,16 +8,16 @@
     <main>
         <h2>Posts</h2>
         <table>
-            {{ range .Posts }}
+            {{- range .Posts }}
             <tr>
                 {{- if .Image }}<td width="33%"><img src="{{ .Image }}"></td>{{- end }}
                 <td width="66%"> {{- if .Favicon }}{{ .Favicon }}{{- end }} <a href="{{ .URL }}">{{ .Title }}</a>
                 <div>{{ .PubDate }}</div></td>
             </tr>
-            {{- end}}
+            {{- end }}
         </table>
     </main>
-    {{ template "footer" . }}
+    {{- template "footer" . }}
 </body>
 </html>
 

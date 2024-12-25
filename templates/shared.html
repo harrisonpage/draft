@@ -45,14 +45,12 @@
     <meta name="fediverse:creator" content="{{ .Config.FediverseCreator }}">
     {{- end }}
 </head>
-{{end}}
-
+{{- end }}
 {{define "footer"}}
     <footer>
         <p>
         <a href="{{ .Links.Home }}">{{ .Config.BlogName }}</a>
         </p>
-
         <p>
         {{- if .PreviousPost.URL }}
         <a style="text-decoration: none;" href="{{ .PreviousPost.URL }}" title="Previous: {{ .PreviousPost.Title }}">{{ index $.Badges "back.svg" }}</a>
@@ -66,7 +64,7 @@
         </address>
         {{- end }}
         {{- range .Config.Badges }}
-            <a href="{{- if .URL }}{{ .URL }}{{ else }}#{{- end}}" {{- if .ID }} id="{{ .ID }}" {{- end }} style="text-decoration: none;" title="{{ .Title }}">{{ index $.Badges .Icon }}</a>
+            <a href="{{- if .URL }}{{ .URL }}{{ else }}#{{- end }}" {{- if .ID }} id="{{ .ID }}" {{- end }} style="text-decoration: none;" title="{{ .Title }}">{{ index $.Badges .Icon }}</a>
         {{- end }}
         <a style="text-decoration: none;" title="Draft Version {{ .Version }}" href="https://github.com/harrisonpage/draft"></a>
         <a style="text-decoration: none;" href="{{ .Links.RSS }}" title="RSS"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-rss"><path d="M4 11a9 9 0 0 1 9 9"/><path d="M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1"/></svg></a>
