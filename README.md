@@ -352,6 +352,12 @@ Contributions are welcome!
 * Open an issue or submit a PR
 * Contact [me](https://harrison.page) with any questions or suggestions
 
+## License
+
+This is free and open source software. You can use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of it, under the terms of the [MIT License](LICENSE.md).
+
+This software is provided "AS IS", WITHOUT WARRANTY OF ANY KIND, express or implied. See the [MIT License](LICENSE.md) for details.
+
 ## History
 
 * Project started on 1-Dec-2024
