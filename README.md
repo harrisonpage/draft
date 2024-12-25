@@ -144,6 +144,36 @@ The `templates` folder contains these files:
 * **`tag.html`**: Page showcasing individual tags, example [here](https://harrison.blog/tags/code/)
 * **`shared.html`**: Top and bottom matter shared among all pages
 
+### Available Template Variables
+
+Each variable in the template references a field in the `Config` structure and corresponds to a YAML configuration entry. Variables can be accessed using the `{{ .Config.<FieldName> }}` syntax in the templates.
+
+| **Template Variable**          | **YAML Field**              | **Description**                                       |
+|---------------------------------|-----------------------------|-------------------------------------------------------|
+| `{{ .Config.InputDir }}`        | `input_dir`                 | Directory containing input files for processing.      |
+| `{{ .Config.TemplatesDir }}`    | `templates_dir`             | Directory containing HTML templates.                  |
+| `{{ .Config.OutputDir }}`       | `output_dir`                | Directory where the generated files are saved.        |
+| `{{ .Config.BadgesDir }}`       | `badges_dir`                | Directory containing SVG badge files.                 |
+| `{{ .Config.IndexTemplatePath }}` | `index_template_path`     | Path to the main index template file.                 |
+| `{{ .Config.TagsIndexTemplatePath }}` | `tags_index_template_path` | Path to the tags index template file.             |
+| `{{ .Config.TagPageTemplatePath }}` | `tag_page_template_path` | Path to the individual tag page template file.        |
+| `{{ .Config.Author }}`          | `author`                   | Author's name for the blog.                           |
+| `{{ .Config.BlogName }}`        | `blog_name`                | The name of the blog.                                 |
+| `{{ .Config.Description }}`     | `description`              | A brief description of the blog.                      |
+| `{{ .Config.Email }}`           | `email`                    | Contact email address for the blog.                   |
+| `{{ .Config.Copyright }}`       | `copyright`                | Copyright information for the blog.                   |
+| `{{ .Config.Language }}`        | `language`                 | Default language of the blog content (e.g., "en").    |
+| `{{ .Config.Locale }}`          | `locale`                   | Locale information for the blog (e.g., "en_US").      |
+| `{{ .Config.Lang }}`            | `lang`                     | Language attribute for HTML documents.                |
+| `{{ .Config.BackLabel }}`       | `back_label`               | Text for a "back" link or button in templates.        |
+| `{{ .Config.CSSFiles }}`        | `css_files`                | List of CSS files to include in the blog.             |
+| `{{ .Config.JSFiles }}`         | `js_files`                 | List of JavaScript files to include in the blog.      |
+| `{{ .Config.Pages }}`           | `pages`                    | List of additional pages to generate.                 |
+| `{{ .Config.URL }}`             | `url`                      | Base URL of the blog.                                 |
+| `{{ .Config.BasePath }}`        | `base_path`                | Base path for generated URLs.                         |
+| `{{ .Config.Badges }}`          | `badges`                   | List of badges to display in the blog.                |
+| `{{ .Config.FediverseCreator }}` | `fediverse_creator`        | Fediverse account of the blog creator.                |
+
 ### Examples
 
 These templates are examples of custom pages as specified in the configuration file.
