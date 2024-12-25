@@ -354,9 +354,9 @@ Contributions are welcome!
 
 ## License
 
-This is free and open source software. You can use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of it, under the terms of the [MIT License](LICENSE.md).
+This is free and open source software. You can use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of it, under the terms of the [MIT License](LICENSE).
 
-This software is provided "AS IS", WITHOUT WARRANTY OF ANY KIND, express or implied. See the [MIT License](LICENSE.md) for details.
+This software is provided "AS IS", WITHOUT WARRANTY OF ANY KIND, express or implied. See the [MIT License](LICENSE) for details.
 
 ## History
 
