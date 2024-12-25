@@ -4,6 +4,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta charset="utf-8">
     <meta name="author" content="{{ .Config.Author }}">
+    {{- if .Config.Email }}
+    <meta name="email" content="{{ .Config.Email }}">
+    {{- end }}
     <meta name="copyright" content="{{ .Config.Copyright }}">
     <meta name="revision" content="{{ .Version }}">
     <meta name="generator" content="draft/{{ .Version }}">
@@ -56,6 +59,11 @@
         {{- end }}
         {{- if .NextPost.URL }}
         <a style="text-decoration: none;" href="{{ .NextPost.URL }}" title="Next: {{ .NextPost.Title }}">{{ index $.Badges "next.svg" }}</a>
+        {{- end }}
+        {{- if .Config.Email }}
+        <address>
+            <a style="text-decoration: none;" href="mailto:{{ .Config.Email }}"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-at-sign"><circle cx="12" cy="12" r="4"/><path d="M16 8v5a3 3 0 0 0 6 0v-1a10 10 0 1 0-4 8"/></svg></a>
+        </address>
         {{- end }}
         {{- range .Config.Badges }}
             <a href="{{- if .URL }}{{ .URL }}{{ else }}#{{- end}}" {{- if .ID }} id="{{ .ID }}" {{- end }} style="text-decoration: none;" title="{{ .Title }}">{{ index $.Badges .Icon }}</a>

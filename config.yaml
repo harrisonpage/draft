@@ -8,6 +8,7 @@ tag_page_template_path: "./templates/tag.html"
 author: "Your Name Here"
 blog_name: "Generic Blog Name"
 description: "This is my blog. There are many like it, but this one is mine"
+email: harrison.page@harrison.page
 fediverse_creator: @harrisonpage@defcon.social
 copyright: "2024"
 lang: "en"

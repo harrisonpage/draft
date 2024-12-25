@@ -66,6 +66,7 @@ type Config struct {
 	Author                string   `yaml:"author"`
 	BlogName              string   `yaml:"blog_name"`
 	Description           string   `yaml:"description"`
+    Email                 string   `yaml:"email"`
 	Copyright             string   `yaml:"copyright"`
 	Language              string   `yaml:"language"`
 	Locale                string   `yaml:"locale"`

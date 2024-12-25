@@ -47,6 +47,8 @@ Descriptions of each field in `config.yaml`:
 
 * **`description`**: Brief description, one paragraph or so, used in link unfurls
 
+* **`email`**: Email address, optional. Appears in a meta tag in the header and also wrapped with an `<address>` tag in the footer
+
 * **`lang`**: Language as specified in the `<html>` tag e.g. "en"
 
 * **`language`**: Language identifier for the generated pages in the format `language-region` (e.g., `en-us` for English, United States)
