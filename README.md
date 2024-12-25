@@ -12,14 +12,14 @@ No support for packaging external files, images, deployment or hosting. Just a s
 
 ## Features
 
+* Posts are authored in Markdown files, no CMS or database required
 * Driven by a YAML configuration file
-* Posts are authored in Markdown files, no CMS required
-* A single binary ("`draft`") converts Markdown to HTML files
+* A single statically-linked binary converts Markdown to HTML files
 * Builds simple sub-pages
 * Sample templates provided
 * Automatically generates tag pages
 * Bring your own CSS files or use [drop-in CSS frameworks](https://github.com/swyxio/spark-joy/blob/master/README.md#drop-in-css-frameworks)
-* RSS 2.0 feed
+* Generates an RSS 2.0 feed
 * Minimal dependencies to build, zero dependencies to run
 * Allows for drafts: Set a post's status to `private` and it will be skipped
 * Home page shows latest post with an index of all posts
@@ -28,7 +28,7 @@ No support for packaging external files, images, deployment or hosting. Just a s
 * Minimal code base: Under 1,000 lines of Golang
 * Fast page generation
 * Easily deploy the `output` folder to production
-* Collision detection to avoid unintentionally overwriting files
+* Collision detection to avoid unintentionally overwriting same-named posts
 * SEO features including meta tags (OpenGraph, etc), sitemap and custom URLs
 
 ## Folders
