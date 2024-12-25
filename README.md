@@ -200,7 +200,7 @@ Used in pages that list all posts. Variables can be accessed using the `{{ .Post
 | `{{ .Post.Tags }}`              | A list of tags associated with the post                                                     |
 | `{{ .Post.Image }}`             | The URL of an image associated with the post                                                |
 | `{{ .Post.Favicon }}`           | The URL of a favicon associated with the post                                               |
-| `{{ .Post.Status }}`            | The status of the post (e.g., "draft" or "published")                                       |
+| `{{ .Post.Status }}`            | The status of the post (e.g., `public` or `private`)                                        |
 | `{{ .Content }}`                | Rendered HTML                                                                               |
 
 ### Post Variables
