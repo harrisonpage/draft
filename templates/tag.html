@@ -14,7 +14,9 @@
                 <h2><span>{{ .Favicon }}</span> <a href="{{ .URL }}">{{ .Title }}</a></h2>
                 <p>{{ .Description }}</p>
                 <p><strong>Published:</strong> {{ .Published }}</p>
+                {{- if .Image }}
                 <p><img src="{{ .Image }}" alt="{{ .Title }}" style="max-width:200px;"></p>
+                {{- end }}
             </li>
         {{ end }}
         </ul>

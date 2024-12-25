@@ -10,8 +10,8 @@
         <table>
             {{- range .Posts }}
             <tr>
-                {{- if .Image }}<td width="33%"><img src="{{ .Image }}"></td>{{- end }}
-                <td width="66%"> {{- if .Favicon }}{{ .Favicon }}{{- end }} <a href="{{ .URL }}">{{ .Title }}</a>
+                {{- if .Image }}<td style="width: 33%;"><img {{ if .Alt }}alt="{{ .Alt }}" {{ end }}src="{{ .Image }}"></td>{{- end }}
+                <td style="width: 66%;"> {{- if .Favicon }}{{ .Favicon }}{{- end }} <a href="{{ .URL }}">{{ .Title }}</a>
                 <div>{{ .PubDate }}</div></td>
             </tr>
             {{- end }}

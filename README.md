@@ -339,6 +339,8 @@ I liked the implementation or the approach of these tools:
 * [Aurora](https://github.com/capjamesg/aurora)
 * [bashblog](https://github.com/cfenollosa/bashblog)
 * [Hexo](https://github.com/hexojs/hexo)
+* [xlog](https://xlog.emadelsaid.com)
+* [Statocles](http://preaction.me/statocles/)
 
 ## See Also
 

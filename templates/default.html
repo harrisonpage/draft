@@ -16,7 +16,7 @@
     </header>
     <main>
         {{- if .Post.Image }}
-        <img src="{{ .Post.Image }}">
+        <img {{ if .Post.Alt }}alt="{{ .Post.Alt }}" {{ end }}src="{{ .Post.Image }}">
         {{- end }}
         {{ .Content }}
     </main>

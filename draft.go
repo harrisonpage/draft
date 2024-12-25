@@ -49,6 +49,7 @@ var Headers = map[string]bool{
 	"favicon":     false,
 	"author":      false,
 	"image":       false,
+	"alt":         false,
 	"status":      false,
 }
 
@@ -133,6 +134,7 @@ type Post struct {
 	Description string
 	Tags        []Tag
 	Image       string
+	Alt         string
 	Favicon     string
 	Status      string
 }
@@ -596,6 +598,7 @@ func generatePost(config Config, file fs.DirEntry) Post {
 		Description: headers["description"],
 		Tags:        tags,
 		Image:       headers["image"],
+		Alt:         headers["alt"],
 		Favicon:     headers["favicon"],
 		Status:      headers["status"],
 	}
