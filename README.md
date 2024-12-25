@@ -1,6 +1,6 @@
 # Draft
 
-A bare-bones blog generator, nothing more. Inspired by [ʕ•ᴥ•ʔ Bear](https://github.com/HermanMartinus/bearblog/).
+A bare-bones static site and blog generator, nothing more.
 
 Entirely configured with command-line arguments. Given a series of templates, convert Markdown to HTML files.
 
@@ -12,12 +12,24 @@ No support for packaging external files, images, deployment or hosting. Just a s
 
 ## Features
 
-* Posts are authored in Markdown
-* Program `draft` convers them to HTML
-* Build arbitrary sub-pages
+* Driven by a YAML configuration file
+* Posts are authored in Markdown files, no CMS required
+* A single binary ("`draft`") converts Markdown to HTML files
+* Builds simple sub-pages
 * Sample templates provided
 * Automatically generates tag pages
+* Bring your own CSS files or use [drop-in CSS frameworks](https://github.com/swyxio/spark-joy/blob/master/README.md#drop-in-css-frameworks)
 * RSS 2.0 feed
+* Minimal dependencies to build, zero dependencies to run
+* Allows for drafts: Set a post's status to `private` and it will be skipped
+* Home page shows latest post with an index of all posts
+* Headers and footers stored in a common template file
+* Compliant with W3C standards for XHTML, CSS and RSS validation
+* Minimal code base: Under 1,000 lines of Golang
+* Fast page generation
+* Easily deploy the `output` folder to production
+* Collision detection to avoid unintentionally overwriting files
+* SEO features including meta tags (OpenGraph, etc), sitemap and custom URLs
 
 ## Folders
 
@@ -26,6 +38,7 @@ The following directories are necessary. Directory names can be customized in th
 * **`badges`**: SVG icons used across the application
 * **`templates`**: HTML templates for rendering content
 * **`posts`**: Collection of blog posts to be generated
+* **`output`**: HTML files are saved here
 
 Posts are processed and rendered in the order of their file names, new to old. To ensure proper ordering, it is recommended to name your blog post files using the following format:
 
@@ -121,6 +134,23 @@ The `icon` field refers to an SVG file in the `badges` folder. For example, `cam
 
 * If the `fediverse_creator` configuration field is filled out, a `fediverse:creator` header will appear on all pages
 
+## Templates
+
+The `templates` folder contains these files:
+
+* **`default.html`**: Post template, can be changed per-post
+* **`index.html`**: Home page, contains most recent post and an index
+* **`tags.html`**: List of all tags used, example [here](https://harrison.blog/tags/)
+* **`tag.html`**: Page showcasing individual tags, example [here](https://harrison.blog/tags/code/)
+* **`shared.html`**: Top and bottom matter shared among all pages
+
+### Examples
+
+These templates are examples of custom pages as specified in the configuration file.
+
+* about.html
+* colophon.html
+
 ## Posts
 
 A blog post has a header and a body. The header is surrounded by three dashes: YAML front matter.
@@ -169,12 +199,34 @@ Fields:
 
 * Courtesy of [Lucide](https://lucide.dev/license)
 
-## References
+## Prior Art
 
-* [github.com/myles/awesome-static-generators](https://github.com/myles/awesome-static-generators)
+Many other static site generators out there:
 
-## Author
+* [awesome-static-generators](https://github.com/myles/awesome-static-generators)
 
-* [harrison.page](https://harrison.page)
+### Noteworthy
 
-1-dec-2024
+I liked the implementation or the approach of these tools:
+
+* [trofaf](https://github.com/mna/trofaf)
+* [Eleventy](https://www.11ty.dev)
+* [Aurora](https://github.com/capjamesg/aurora)
+* [bashblog](https://github.com/cfenollosa/bashblog)
+* [Hexo](https://github.com/hexojs/hexo)
+
+## See Also
+
+* [IndieWeb](https://indieweb.org)
+* Inspired by [ʕ•ᴥ•ʔ Bear](https://github.com/HermanMartinus/bearblog/)
+
+## Contributing
+
+Contributions are welcome!
+
+* Open an issue or submit a PR
+* Contact [me](https://harrison.page) with any questions or suggestions
+
+## History
+
+* Project started on 1-Dec-2024
