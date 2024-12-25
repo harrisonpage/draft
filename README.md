@@ -19,6 +19,26 @@ No support for packaging external files, images, deployment or hosting. Just a s
 * Automatically generates tag pages
 * RSS 2.0 feed
 
+## Folders
+
+The following directories are necessary. Directory names can be customized in the configuration file.
+
+* **`badges`**: SVG icons used across the application
+* **`templates`**: HTML templates for rendering content
+* **`posts`**: Collection of blog posts to be generated. Files are processed in the order of their file names.
+
+To ensure proper ordering, it is recommended to name your blog post files using the following format:
+
+```text
+YYYYMMDD.descriptive.title.md
+```
+
+Example:
+
+```text
+20250101.happy.new.year.md
+```
+
 ## Environment Variables
 
 Run `build.sh`. (Sets `DRAFT_BUILD_VERSION` and runs `make`.)
