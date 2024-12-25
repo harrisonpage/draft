@@ -201,6 +201,7 @@ Used in pages that list all posts. Variables can be accessed using the `{{ .Post
 Used in pages that reference a single post.
 
 | **Template Variable**          | **Description**                 |
+|--------------------------------|---------------------------------|
 | `{{ .Title }}`                 | Post Title                      |
 | `{{ .URL }}`                   | Post URL                        |
 | `{{ .Author }}`                | Post Author                     |
@@ -213,6 +214,7 @@ Used in pages that reference a single post.
 Variables specific to link previews or unfurls.
 
 | **Template Variable**          |  **Description**                    |
+|--------------------------------|-------------------------------------|
 | `{{ .Unfurl.Title }}`          | Post Title                          |
 | `{{ .Unfurl.URL }}`            | Post URL                            |
 | `{{ .Unfurl.Author }}`         | Post Author                         |
