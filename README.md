@@ -25,9 +25,9 @@ The following directories are necessary. Directory names can be customized in th
 
 * **`badges`**: SVG icons used across the application
 * **`templates`**: HTML templates for rendering content
-* **`posts`**: Collection of blog posts to be generated. Files are processed in the order of their file names.
+* **`posts`**: Collection of blog posts to be generated
 
-To ensure proper ordering, it is recommended to name your blog post files using the following format:
+Posts are processed and rendered in the order of their file names, new to old. To ensure proper ordering, it is recommended to name your blog post files using the following format:
 
 ```text
 YYYYMMDD.descriptive.title.md
