@@ -19,17 +19,17 @@ No support for packaging external files, images, deployment or hosting. Just a s
 * Sample templates provided
 * Automatically generates tag pages
 * Bring your own CSS files or use [drop-in CSS frameworks](https://github.com/swyxio/spark-joy/blob/master/README.md#drop-in-css-frameworks)
-* Generates an RSS 2.0 feed
+* Generates Atom and RSS 2.0 feeds
 * Minimal dependencies to build, zero dependencies to run
 * Allows for drafts: Set a post's status to `private` and it will be skipped
 * Home page shows latest post with an index of all posts
 * Headers and footers stored in a common template file
-* Compliant with W3C standards for XHTML, CSS and RSS validation
+* Compliant with W3C standards for XHTML, CSS, Atom and RSS validation
 * Minimal code base: Under 1,000 lines of Golang
 * Fast page generation
 * Easily deploy the `output` folder to production
 * Collision detection to avoid unintentionally overwriting same-named posts
-* SEO features including meta tags (OpenGraph, etc), sitemap and custom URLs
+* SEO features: meta tags (OpenGraph, etc), sitemap and custom URLs
 
 ## Folders
 
@@ -264,15 +264,16 @@ On templates that render a single post, use the `PreviousPost` and `NextPost` va
 
 ### Miscellaneous Variables
 
-| **Template Variable**    | **Description**                          |
-|--------------------------|------------------------------------------|
-| `{{ .Version }}`         | Draft version number                     |
-| `{{ .Now }}`             | Current date                             |
-| `{{ .Canonical }}`       | URL used by the canonical meta tag       |
-| `{{ .Links.Home }}`      | The URL for the home page                |
-| `{{ .Links.Tags }}`      | The URL for the tags page                |
-| `{{ .Links.RSS }}`       | The URL for the RSS feed                 |
-| `{{ .Links.Sitemap }}`   | The URL for the sitemap                  |
+| **Template Variable**    | **Description**                    |
+|--------------------------|------------------------------------|
+| `{{ .Version }}`         | Draft version number               |
+| `{{ .Now }}`             | Current date                       |
+| `{{ .Canonical }}`       | URL used by the canonical meta tag |
+| `{{ .Links.Home }}`      | URL for home page                  |
+| `{{ .Links.Tags }}`      | URL for tags page                  |
+| `{{ .Links.Atom }}`      | URL for RSS feed                   |
+| `{{ .Links.RSS }}`       | URL for Atom feed                  |
+| `{{ .Links.Sitemap }}`   | URL for sitemap                    |
 
 See the contents of the `templates` folder for examples of how these variables are used.
 

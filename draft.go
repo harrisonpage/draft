@@ -2,10 +2,13 @@ package main
 
 import (
 	"bufio"
+	"bytes"
+	"encoding/json"
 	"encoding/xml"
 	"errors"
 	"fmt"
 	"html/template"
+	"io"
 	"io/fs"
 	"log"
 	"os"
@@ -16,7 +19,9 @@ import (
 	"time"
 
 	"github.com/gomarkdown/markdown"
+	"github.com/gomarkdown/markdown/ast"
 	"github.com/gomarkdown/markdown/html"
+
 	"github.com/gomarkdown/markdown/parser"
 	"gopkg.in/yaml.v3"
 )
@@ -34,6 +39,14 @@ const (
 var ValidPostStatuses = map[PostStatus]struct{}{
 	Public:  {},
 	Private: {},
+}
+
+func convertTagsToStrings(tags []Tag) []string {
+	tagStrings := make([]string, len(tags))
+	for i, tag := range tags {
+		tagStrings[i] = tag.TagName
+	}
+	return tagStrings
 }
 
 /*
@@ -54,32 +67,44 @@ var Headers = map[string]bool{
 }
 
 /*
+ * Support for external search engines
+ */
+type SearchConfig struct {
+	Enabled bool   `yaml:"enabled"`
+	Engine  string `yaml:"engine"`
+	URL     string `yaml:"url"`
+	Path    string `yaml:"path"`
+	Dir     string `yaml:"dir"`
+}
+
+/*
  * Fields in config.yaml
  */
 type Config struct {
-	InputDir              string   `yaml:"input_dir"`
-	TemplatesDir          string   `yaml:"templates_dir"`
-	OutputDir             string   `yaml:"output_dir"`
-	BadgesDir             string   `yaml:"badges_dir"`
-	IndexTemplatePath     string   `yaml:"index_template_path"`
-	TagsIndexTemplatePath string   `yaml:"tags_index_template_path"`
-	TagPageTemplatePath   string   `yaml:"tag_page_template_path"`
-	Author                string   `yaml:"author"`
-	BlogName              string   `yaml:"blog_name"`
-	Description           string   `yaml:"description"`
-	Email                 string   `yaml:"email"`
-	Copyright             string   `yaml:"copyright"`
-	Language              string   `yaml:"language"`
-	Locale                string   `yaml:"locale"`
-	Lang                  string   `yaml:"lang"`
-	BackLabel             string   `yaml:"back_label"`
-	CSSFiles              []string `yaml:"css_files"`
-	JSFiles               []string `yaml:"js_files"`
-	Pages                 []Page   `yaml:"pages"`
-	URL                   string   `yaml:"url"`
-	BasePath              string   `yaml:"base_path"`
-	Badges                []Badge  `yaml:"badges"`
-	FediverseCreator      string   `yaml:"fediverse_creator"`
+	InputDir              string       `yaml:"input_dir"`
+	TemplatesDir          string       `yaml:"templates_dir"`
+	OutputDir             string       `yaml:"output_dir"`
+	BadgesDir             string       `yaml:"badges_dir"`
+	IndexTemplatePath     string       `yaml:"index_template_path"`
+	TagsIndexTemplatePath string       `yaml:"tags_index_template_path"`
+	TagPageTemplatePath   string       `yaml:"tag_page_template_path"`
+	Author                string       `yaml:"author"`
+	BlogName              string       `yaml:"blog_name"`
+	Description           string       `yaml:"description"`
+	Email                 string       `yaml:"email"`
+	Copyright             string       `yaml:"copyright"`
+	Language              string       `yaml:"language"`
+	Locale                string       `yaml:"locale"`
+	Lang                  string       `yaml:"lang"`
+	BackLabel             string       `yaml:"back_label"`
+	CSSFiles              []string     `yaml:"css_files"`
+	JSFiles               []string     `yaml:"js_files"`
+	Pages                 []Page       `yaml:"pages"`
+	URL                   string       `yaml:"url"`
+	BasePath              string       `yaml:"base_path"`
+	Badges                []Badge      `yaml:"badges"`
+	FediverseCreator      string       `yaml:"fediverse_creator"`
+	Search                SearchConfig `yaml:"search"`
 }
 
 type Badge struct {
@@ -113,6 +138,7 @@ type Links struct {
 	Home    string
 	Tags    string
 	RSS     string
+	Atom    string
 	Sitemap string
 }
 
@@ -127,7 +153,8 @@ type Post struct {
 	Link        string
 	URL         string
 	Template    string
-	Content     string
+	HTML        string
+	Text        string    // Plaintext representation
 	Published   string    // ISO 8601 AKA time.RFC3339 e.g. 2025-01-15T06:29:00-08:00
 	PubTime     time.Time // parsed version of Published date
 	PubDate     string    // 15-Jan-2025
@@ -177,6 +204,10 @@ type URL struct {
 	Priority   string `xml:"priority,omitempty"`
 }
 
+type PlainTextRenderer struct {
+	buf bytes.Buffer
+}
+
 func loadConfig(filename string) (*Config, error) {
 	file, err := os.Open(filename)
 	if err != nil {
@@ -205,10 +236,10 @@ func publish(md []byte) []byte {
 	return markdown.Render(doc, renderer)
 }
 
-func parseFileWithHeaders(filePath string) (map[string]string, string, error) {
+func parseFileWithHeaders(filePath string) (map[string]string, string, string, error) {
 	file, err := os.Open(filePath)
 	if err != nil {
-		return nil, "", fmt.Errorf("failed to open file '%s': %w", filePath, err)
+		return nil, "", "", fmt.Errorf("failed to open file '%s': %w", filePath, err)
 	}
 	defer file.Close()
 
@@ -228,12 +259,15 @@ func parseFileWithHeaders(filePath string) (map[string]string, string, error) {
 			} else {
 				// end of header metadata
 				yip = true
+				continue
 			}
 		}
 
 		if yip {
+			// document body
 			contentBuilder.WriteString(line + "\n")
 		} else {
+			// document header
 			parts := strings.SplitN(line, ":", 2)
 			if len(parts) == 2 {
 				key := strings.TrimSpace(parts[0])
@@ -244,10 +278,12 @@ func parseFileWithHeaders(filePath string) (map[string]string, string, error) {
 	}
 
 	if err := scanner.Err(); err != nil {
-		return nil, "", fmt.Errorf("failed to read file '%s': %w", filePath, err)
+		return nil, "", "", fmt.Errorf("failed to read file '%s': %w", filePath, err)
 	}
 
-	return headers, contentBuilder.String(), nil
+	// trim initial \n
+	content := strings.TrimPrefix(contentBuilder.String(), "\n")
+	return headers, content, ToPlainText(content), nil
 }
 
 func validateHeaders(headers map[string]string, knownHeaders map[string]bool, filePath string) error {
@@ -287,8 +323,7 @@ func validateHeaders(headers map[string]string, knownHeaders map[string]bool, fi
 }
 
 /*
- * Sanity check: Validating user-provided link names even if the user is, like,
- * super smart and never makes mistakes.
+ * Sanity check: Validating user-provided link names
  */
 
 func validateLinkName(link string) error {
@@ -352,6 +387,53 @@ func loadBadges(badgesDir string) map[string]template.HTML {
 	return badges
 }
 
+/*
+ * Helper code for transforming Markdown to text/plain for indexing purposes
+ */
+
+func (r *PlainTextRenderer) RenderNode(w io.Writer, node ast.Node, entering bool) ast.WalkStatus {
+	switch n := node.(type) {
+	case *ast.Text:
+		r.buf.Write(n.Literal)
+	case *ast.Link:
+		if !entering {
+			r.buf.WriteString(" (" + string(n.Destination) + ")")
+		}
+	case *ast.Heading:
+		if !entering {
+			r.buf.WriteString("\n")
+		}
+	case *ast.Paragraph:
+		if !entering {
+			r.buf.WriteString("\n\n")
+		}
+	case *ast.Code:
+		r.buf.Write(n.Literal)
+	case *ast.CodeBlock:
+		r.buf.Write(n.Literal)
+		r.buf.WriteString("\n")
+	case *ast.ListItem:
+		if entering {
+			r.buf.WriteString("- ")
+		}
+	case *ast.HTMLBlock, *ast.HTMLSpan:
+		return ast.SkipChildren
+	}
+	return ast.GoToNext
+}
+
+func (r *PlainTextRenderer) RenderHeader(w io.Writer, ast ast.Node) {}
+
+func (r *PlainTextRenderer) RenderFooter(w io.Writer, ast ast.Node) {}
+
+func ToPlainText(md string) string {
+	parser := parser.NewWithExtensions(parser.CommonExtensions)
+	doc := markdown.Parse([]byte(md), parser)
+	renderer := &PlainTextRenderer{}
+	markdown.Render(doc, renderer)
+	return renderer.buf.String()
+}
+
 func processMarkdownFiles(config Config) {
 	/*
 	 * Load badges into map: filename => SVG
@@ -382,6 +464,15 @@ func processMarkdownFiles(config Config) {
 	}
 
 	/*
+	 * Create search folder
+	 */
+	if config.Search.Enabled {
+		if err := os.MkdirAll(filepath.Join(config.OutputDir, config.Search.Dir), 0755); err != nil {
+			log.Fatalf("Failed to create search directory '%s': %v", config.Search.Dir, err)
+		}
+	}
+
+	/*
 	 * List of all posts
 	 */
 	var posts []Post
@@ -398,6 +489,7 @@ func processMarkdownFiles(config Config) {
 
 	links := Links{
 		Home:    buildRootLink(config),
+		Atom:    buildAtomLink(config),
 		RSS:     buildRSSLink(config),
 		Tags:    buildTagsLink(config),
 		Sitemap: buildSitemapLink(config),
@@ -493,7 +585,7 @@ func processMarkdownFiles(config Config) {
 			Locale:      config.Locale,
 		}
 
-		htmlContent := publish([]byte(post.Content))
+		htmlContent := publish([]byte(post.HTML))
 
 		/*
 		 * Determine previous/next posts
@@ -555,13 +647,18 @@ func processMarkdownFiles(config Config) {
 	generateIndexHTML(config, posts, links, badges, now)
 	generateTagsHTML(config, tagsOutputDir, tagIndex, links, badges, now)
 	generateRSSFeed(config, posts)
+	generateAtomFeed(config, posts)
 	generateCustomPages(config, links, badges, now)
 	generateSitemap(config, posts)
+	if config.Search.Enabled {
+		generateSluggoExport(config, posts)
+		generateSearchHTML(config, links, badges, now)
+	}
 }
 
 func generatePost(config Config, file fs.DirEntry) Post {
 	filePath := filepath.Join(config.InputDir, file.Name())
-	headers, content, err := parseFileWithHeaders(filePath)
+	headers, content, text, err := parseFileWithHeaders(filePath)
 	if err != nil {
 		log.Fatalf("Failed to process file '%s': %v", filePath, err)
 	}
@@ -590,7 +687,8 @@ func generatePost(config Config, file fs.DirEntry) Post {
 		Title:       headers["title"],
 		Link:        headers["link"],
 		URL:         buildPostLink(config, headers["link"]),
-		Content:     content,
+		HTML:        content,
+		Text:        text,
 		Template:    headers["template"],
 		Published:   headers["published"],
 		PubDate:     pubTime.Format("02-Jan-2006"),
@@ -872,6 +970,89 @@ func generateSitemap(config Config, posts []Post) {
 }
 
 /*
+ * Sluggo version 1 structures
+ */
+
+type Corpus struct {
+	Name      string     // Name of corpus
+	URL       string     // URL e.g. https://harrison.blog
+	Created   int64      // Create date in UNIX time since epoch
+	Version   int        // Version of JSON input file
+	Documents []Document // List of documents
+}
+
+type Document struct {
+	ID          string              // Document ID, typically a URL
+	Title       string              // Docuemnt title e.g. "Hello World"
+	Description string              // Brief description, first sentence of document or so
+	Text        string              // Entire document
+	Attributes  map[string][]string // Arbitrary attributes e.g. {"author": ["Harrison"]}
+	Hints       []string            // Hints provide best matches for search
+}
+
+/*
+ * Optionally generate Sluggo (search engine) export
+ */
+
+func generateSluggoExport(config Config, posts []Post) {
+	file, err := os.Create(config.Search.Path)
+	if err != nil {
+		fmt.Printf("Error creating sluggo export file '%s': %v\n", config.Search.Path, err)
+		return
+	}
+	payload := Corpus{
+		Name:    config.BlogName,
+		URL:     config.URL,
+		Created: time.Now().Unix(),
+		Version: 1,
+	}
+	for _, post := range posts {
+		doc := Document{
+			ID:          post.URL,
+			Title:       post.Title,
+			Description: post.Description,
+			Text:        post.Text,
+			Attributes:  map[string][]string{"author": {post.Author}, "tags": convertTagsToStrings(post.Tags)},
+			Hints:       []string{},
+		}
+		payload.Documents = append(payload.Documents, doc)
+	}
+
+	encoder := json.NewEncoder(file)
+	encoder.SetIndent("", "    ")
+	if err := encoder.Encode(payload); err != nil {
+		fmt.Printf("Error writing sluggo export to file: %v\n", err)
+		return
+	}
+
+	fmt.Printf("📔 Sluggo export: %s\n", config.Search.Path)
+}
+
+func generateSearchHTML(config Config, links Links, badges map[string]template.HTML, now string) {
+	templatePath := filepath.Join(config.TemplatesDir, "search.html")
+	tmpl, err := template.ParseFiles(templatePath, filepath.Join(config.TemplatesDir, "shared.html"))
+	if err != nil {
+		log.Fatalf("Failed to parse template '%s': %v", templatePath, err)
+	}
+	searchPath := filepath.Join(config.OutputDir, config.Search.Dir, "index.html")
+	searchFile, err := os.Create(searchPath)
+	if err != nil {
+		log.Fatalf("Failed to create search file '%s': %v", searchPath, err)
+	}
+	defer searchFile.Close()
+	data := map[string]interface{}{
+		"Config": config,
+		"Links":  links,
+		"Badges": badges,
+		"Now":    now,
+	}
+	if err := tmpl.Execute(searchFile, data); err != nil {
+		log.Fatalf("Failed to generate tags index.html: %v", err)
+	}
+	fmt.Printf("🔍 Search template written")
+}
+
+/*
  * For functions that build paths or URLs, we check if an optional BasePath is
  * set. This allows us to serve documents from example.com/blog rather than
  * the root of example.com.
@@ -910,6 +1091,13 @@ func buildRSSLink(config Config) string {
 		return fmt.Sprintf("%s/%s/rss.xml", config.URL, config.BasePath)
 	}
 	return fmt.Sprintf("%s/rss.xml", config.URL)
+}
+
+func buildAtomLink(config Config) string {
+	if config.BasePath != "" {
+		return fmt.Sprintf("%s/%s/atom.xml", config.URL, config.BasePath)
+	}
+	return fmt.Sprintf("%s/atom.xml", config.URL)
 }
 
 func buildCustomPageLink(config Config, page Page) string {
@@ -970,6 +1158,91 @@ func generateRSSFeed(config Config, posts []Post) error {
 	}
 
 	fmt.Printf("📔 RSS: %s\n", outputPath)
+	return nil
+}
+
+/*
+ * Atom
+ */
+
+func generateAtomFeed(config Config, posts []Post) error {
+	type AtomLink struct {
+		Href string `xml:"href,attr"`
+		Rel  string `xml:"rel,attr,omitempty"`
+		Type string `xml:"type,attr,omitempty"`
+	}
+
+	type AtomAuthor struct {
+		Name  string `xml:"name"`
+		Email string `xml:"email,omitempty"`
+	}
+
+	type AtomEntry struct {
+		Title     string     `xml:"title"`
+		Link      []AtomLink `xml:"link"`
+		Id        string     `xml:"id"`
+		Published string     `xml:"published,omitempty"`
+		Updated   string     `xml:"updated"`
+		Summary   string     `xml:"summary"`
+		Content   string     `xml:"content,omitempty"`
+		Author    AtomAuthor `xml:"author"`
+	}
+
+	type AtomFeed struct {
+		XMLName  xml.Name    `xml:"feed"`
+		Xmlns    string      `xml:"xmlns,attr"`
+		Title    string      `xml:"title"`
+		Subtitle string      `xml:"subtitle"`
+		Link     []AtomLink  `xml:"link"`
+		Id       string      `xml:"id"`
+		Updated  string      `xml:"updated"`
+		Author   AtomAuthor  `xml:"author"`
+		Entries  []AtomEntry `xml:"entry"`
+	}
+
+	entries := make([]AtomEntry, len(posts))
+	for i, post := range posts {
+		entries[i] = AtomEntry{
+			Title: post.Title,
+			Link: []AtomLink{
+				{Href: post.URL},
+			},
+			Id:        post.URL,
+			Published: post.PubTime.Format(time.RFC3339),
+			Updated:   post.PubTime.Format(time.RFC3339),
+			Summary:   post.Description,
+			Author:    AtomAuthor{Name: post.Author},
+		}
+	}
+
+	atom := AtomFeed{
+		Xmlns:    "http://www.w3.org/2005/Atom",
+		Title:    config.BlogName,
+		Subtitle: fmt.Sprintf("Latest posts from %s", config.BlogName),
+		Link: []AtomLink{
+			{Href: buildAtomLink(config), Rel: "self"},
+			{Href: buildRootLink(config)},
+		},
+		Id:      buildRootLink(config),
+		Updated: time.Now().Format(time.RFC3339),
+		Author:  AtomAuthor{Name: config.BlogName, Email: config.Email},
+		Entries: entries,
+	}
+
+	outputPath := fmt.Sprintf("%s/atom.xml", config.OutputDir)
+	file, err := os.Create(outputPath)
+	if err != nil {
+		return fmt.Errorf("failed to create Atom feed file: %w", err)
+	}
+	defer file.Close()
+
+	encoder := xml.NewEncoder(file)
+	encoder.Indent("", "  ")
+	if err := encoder.Encode(atom); err != nil {
+		return fmt.Errorf("failed to encode Atom feed: %w", err)
+	}
+
+	fmt.Printf("⚛️  Atom: %s\n", outputPath)
 	return nil
 }
 

@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="{{ .Config.Lang }}">
+{{ template "header" . }}
+<body>
+    <header>
+        <h1>Search</h1>
+    </header>
+    <main>
+        <div>
+            {{- if .Config.Search.Enabled }}
+            <form
+                onsubmit="event.preventDefault(); performSearch();"
+            >
+                <input
+                    type="text"
+                    name="q"
+                    class="search-input"
+                    placeholder="Search"
+                    autofocus
+                />
+                <button type="submit">Search</button>
+            </form>
+        </div>
+        <div id="results"></div>
+        {{- else }}
+        <h1>Search Not Enabled</h1>
+        {{- end }}
+    </main>
+    {{ template "footer" . }}
+        {{- if .Config.Search.Enabled }}
+        <script>
+            function getQueryParameter(name) {
+                const urlParams = new URLSearchParams(window.location.search);
+                return urlParams.get(name);
+            }
+
+            async function performSearch() {
+                const corpus = "{{ .Config.BlogName }}";
+                const queryInput = document.querySelector(".search-input");
+                const query = encodeURIComponent(queryInput.value);
+                const hostname = "{{ .Config.Search.URL }}";
+                const url = `${hostname}/search?corpus=${corpus}&q=${query}`;
+                const startTime = performance.now();
+
+                try {
+                    // Update the browser's URL without reloading the page
+                    const newUrl = `?corpus=${corpus}&q=${query}`;
+                    window.history.pushState(null, "", newUrl);
+
+                    const response = await fetch(url);
+                    const data = await response.json();
+                    const endTime = performance.now();
+                    const duration = (endTime - startTime).toFixed(0);
+                    displayResults(data, duration);
+                } catch (error) {
+                    console.error("Error fetching search results:", error);
+                    displayError("Failed to fetch results.");
+                }
+            }
+
+            function displayResults(data, duration) {
+                document.title = data.corpus;
+                const resultsDiv = document.getElementById("results");
+                resultsDiv.innerHTML = "";
+                const rowCount = data.results.length || 0;
+                const summary = document.createElement("div");
+                summary.innerHTML = `<span title="${duration} ms">Results: ${rowCount}</span>`;
+                resultsDiv.appendChild(summary);
+
+                if (rowCount > 0) {
+                    const table = document.createElement("table");
+                    table.className = "results-table";
+                    const header = document.createElement("thead");
+                    header.innerHTML = `
+                <tr>
+                    <th>Document</th>
+                    <th>Description</th>
+                </tr>
+            `;
+                    table.appendChild(header);
+
+                    const body = document.createElement("tbody");
+                    data.results.forEach((item) => {
+                        const row = document.createElement("tr");
+                        row.innerHTML = `
+                    <td><a href="${data.url}${item.url}">${item.title}</a></td>
+                    <td>${item.description}</td>
+                `;
+                        body.appendChild(row);
+                        if (item.preview && item.preview.toLowerCase() !== item.description.toLowerCase()) {
+                            const previewRow = document.createElement("tr");
+                            const previewCell = document.createElement("td");
+                            previewCell.colSpan = 4;
+                            previewCell.className = "preview";
+                            previewCell.innerHTML = item.preview;
+                            previewRow.appendChild(previewCell);
+                            body.appendChild(previewRow);
+                        }
+                    });
+                    table.appendChild(body);
+
+                    resultsDiv.appendChild(table);
+                }
+            }
+
+            function displayError(message) {
+                const resultsDiv = document.getElementById("results");
+                resultsDiv.innerHTML = `<div>${message}</div>`;
+            }
+
+            // Automatically perform search if 'q' parameter is present on page load
+            window.onload = () => {
+                const query = getQueryParameter("q");
+                if (query) {
+                    const queryInput = document.querySelector(".search-input");
+                    queryInput.value = query;
+                    performSearch();
+                }
+            };
+        </script>
+        {{- end }}
+</body>
+</html>
+

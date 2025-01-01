@@ -47,3 +47,6 @@ pages:
 url: "https://example.com"
 base_path: "draft"
 back_label: "Back"
+search:
+    enabled: false
+
