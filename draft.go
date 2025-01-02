@@ -1123,7 +1123,7 @@ func buildRightsLink(config Config) string {
 	if config.BasePath != "" {
 		return fmt.Sprintf("%s/%s/%s", config.URL, config.BasePath, "sitemap.xml")
 	}
-	return fmt.Sprintf("%s/%s", config.URL, "sitemap.xml")
+	return fmt.Sprintf("%s/%s", config.URL, "rights/")
 }
 
 /*
