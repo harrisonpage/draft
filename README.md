@@ -335,17 +335,17 @@ Fields:
 
 ## Copyright
 
-The file `rights.html` is written with the contents of the template with the same name.
+The file `rights/index.html` corresponds to the [template file of the same name](templates/rights.html).
 
 You should customize this file for your own website. It contains a bunch of silly boilerplate out of the box.
-
-If you don't wish to explicitly state a copyright message, you can remove the `rights` field from your [configuration file](config.yaml).
-
-Refer to the [LICENSE](LICENSE) for this software's license details.
 
 ### Copyleft
 
 If your work uses a Copyleft license, update the [shared.html](templates/shared.html) template by replacing `copyright.svg` with `copyleft.svg`.
+
+## License
+
+Refer to the [LICENSE](LICENSE) for this software's license details.
 
 ## Prior Art
 
