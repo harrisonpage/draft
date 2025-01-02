@@ -128,6 +128,12 @@ badges:
 
 The `icon` field refers to an SVG file in the `badges` folder. For example, `camera` maps to `badges/camera.svg`.
 
+Badges can be automatically loaded in a template like so:
+
+```text
+{{ index $.Badges "back.svg" }}
+```
+
 [Lucide](https://lucide.dev) is an excellent resource for SVG icons.
 
 ## Fediverse Integration
@@ -294,6 +300,7 @@ published: 2024-11-29T18:29:00-08:00
 template: default.html
 favicon: 👋🏻
 author: harrison
+email: harrison.page@harrison.page
 status: public
 ---
 
@@ -313,6 +320,7 @@ Fields:
 * **`template`**: Name of a file in the `templates` folder
 * **`favicon`**: Emoji associated with post (optional)
 * **`author`**: Post author (optional)
+* **`email`**: Post author's email address (optional)
 * **`status`**: `public` or `private`
 
 ## Usage

@@ -62,16 +62,16 @@
         <a style="text-decoration: none;" href="{{ .NextPost.URL }}" title="Next: {{ .NextPost.Title }}">{{ index $.Badges "next.svg" }}</a>
         {{- end }}
         {{- if .Config.Email }}
-        <a style="text-decoration: none;" href="mailto:{{ .Config.Email }}"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-at-sign"><circle cx="12" cy="12" r="4"/><path d="M16 8v5a3 3 0 0 0 6 0v-1a10 10 0 1 0-4 8"/></svg></a>
+        <a style="text-decoration: none;" href="mailto:{{ .Config.Email }}">{{ index $.Badges "email.svg" }}</a>
         {{- end }}
         {{- range .Config.Badges }}
             <a href="{{- if .URL }}{{ .URL }}{{ else }}#{{- end }}" {{- if .ID }} id="{{ .ID }}" {{- end }} style="text-decoration: none;" title="{{ .Title }}">{{ index $.Badges .Icon }}</a>
         {{- end }}
         <a style="text-decoration: none;" title="Draft Version {{ .Version }}" href="https://github.com/harrisonpage/draft"></a>
         <a style="text-decoration: none;" href="{{ .Links.Atom }}" title="Atom">{{ index $.Badges "atom.svg" }}</a>
-        <a style="text-decoration: none;" href="{{ .Links.RSS }}" title="RSS"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-rss"><path d="M4 11a9 9 0 0 1 9 9"/><path d="M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1"/></svg></a>
-        <a style="text-decoration: none;" href="{{ .Links.Tags }}" title="Posts by Tag"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-tag"><path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z"/><circle cx="7.5" cy="7.5" r=".5" fill="currentColor"/></svg></a>
-        <span title="Copyright {{ .Config.Copyright }}"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-copyright"><circle cx="12" cy="12" r="10"/><path d="M14.83 14.83a4 4 0 1 1 0-5.66"/></svg></span>
+        <a style="text-decoration: none;" href="{{ .Links.RSS }}" title="RSS">{{ index $.Badges "rss.svg" }}</a>
+        <a style="text-decoration: none;" href="{{ .Links.Tags }}" title="Posts by Tag">{{ index $.Badges "tag.svg" }}</a>
+        <span title="Copyright {{ .Config.Copyright }}">{{ index $.Badges "copyright.svg" }}</span>
         </p>
     </footer>
     <script>

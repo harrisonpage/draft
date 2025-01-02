@@ -150,6 +150,7 @@ type Tag struct {
 type Post struct {
 	Title       string
 	Author      string
+	Email       string
 	Link        string
 	URL         string
 	Template    string
@@ -641,7 +642,7 @@ func processMarkdownFiles(config Config) {
 			log.Fatalf("Failed to execute template for file '%s': %v", outputFilePath, err)
 		}
 
-		fmt.Printf("📘 Post: %s\n", post.Link)
+		fmt.Printf("📘 Post: \"%s\" by %s\n", post.Link, post.Author)
 	}
 
 	generateIndexHTML(config, posts, links, badges, now)
@@ -685,6 +686,8 @@ func generatePost(config Config, file fs.DirEntry) Post {
 
 	post := Post{
 		Title:       headers["title"],
+		Author:      headers["author"],
+		Email:       headers["email"],
 		Link:        headers["link"],
 		URL:         buildPostLink(config, headers["link"]),
 		HTML:        content,
@@ -1211,7 +1214,7 @@ func generateAtomFeed(config Config, posts []Post) error {
 			Published: post.PubTime.Format(time.RFC3339),
 			Updated:   post.PubTime.Format(time.RFC3339),
 			Summary:   post.Description,
-			Author:    AtomAuthor{Name: post.Author},
+			Author:    AtomAuthor{Name: post.Author, Email: post.Email},
 		}
 	}
 
