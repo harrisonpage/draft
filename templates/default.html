@@ -4,6 +4,7 @@
 <body>
     <header>
         <h1>{{ .Post.Title }}</h1>
+        <p>Author: <a href="mailto:{{ .Post.Email}}">{{ .Post.Author }}</a></p>
         <p>Published: {{ .Post.Published }}</p>
         {{- if .Tags }}<p>
         Tags:

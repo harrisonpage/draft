@@ -7,10 +7,16 @@
     {{- if .Config.Email }}
     <meta name="email" content="{{ .Config.Email }}">
     {{- end }}
-    <meta name="copyright" content="{{ .Config.Copyright }}">
+    {{- if .Config.Rights }}
+    <meta name="copyright" content="{{ .Config.Rights }}">
+    {{- end }}
     <meta name="revision" content="{{ .Version }}">
     <meta name="generator" content="draft/{{ .Version }}">
     <meta name="updated" content="{{ .Now }}">
+    <meta name="coverage" content="Worldwide">
+<meta name="distribution" content="Global">
+<meta name="rating" content="General">
+
     <link rel="canonical" href="{{ .Canonical }}">
     <link rel="alternate" type="application/rss+xml" title="{{ .Config.BlogName }}" href="{{ .Links.RSS }}">
     <link rel="sitemap" type="application/xml" title="Sitemap" href="{{ .Links.Sitemap }}">
@@ -71,7 +77,9 @@
         <a style="text-decoration: none;" href="{{ .Links.Atom }}" title="Atom">{{ index $.Badges "atom.svg" }}</a>
         <a style="text-decoration: none;" href="{{ .Links.RSS }}" title="RSS">{{ index $.Badges "rss.svg" }}</a>
         <a style="text-decoration: none;" href="{{ .Links.Tags }}" title="Posts by Tag">{{ index $.Badges "tag.svg" }}</a>
-        <span title="Copyright {{ .Config.Copyright }}">{{ index $.Badges "copyright.svg" }}</span>
+        {{- if .Config.Rights }}
+        <a style="text-decoration: none;" href="/rights.html" title="{{ .Config.Rights }}">{{ index $.Badges "copyright.svg" }}</a>
+        {{- end }}
         </p>
     </footer>
     <script>

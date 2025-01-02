@@ -92,7 +92,6 @@ type Config struct {
 	BlogName              string       `yaml:"blog_name"`
 	Description           string       `yaml:"description"`
 	Email                 string       `yaml:"email"`
-	Copyright             string       `yaml:"copyright"`
 	Language              string       `yaml:"language"`
 	Locale                string       `yaml:"locale"`
 	Lang                  string       `yaml:"lang"`
@@ -105,6 +104,7 @@ type Config struct {
 	Badges                []Badge      `yaml:"badges"`
 	FediverseCreator      string       `yaml:"fediverse_creator"`
 	Search                SearchConfig `yaml:"search"`
+	Rights                string       `yaml:"rights"`
 }
 
 type Badge struct {
@@ -140,6 +140,7 @@ type Links struct {
 	RSS     string
 	Atom    string
 	Sitemap string
+	Rights  string
 }
 
 type Tag struct {
@@ -494,6 +495,7 @@ func processMarkdownFiles(config Config) {
 		RSS:     buildRSSLink(config),
 		Tags:    buildTagsLink(config),
 		Sitemap: buildSitemapLink(config),
+		Rights:  buildRightsLink(config),
 	}
 
 	namespace := make(map[string]bool)
@@ -1117,6 +1119,13 @@ func buildSitemapLink(config Config) string {
 	return fmt.Sprintf("%s/%s", config.URL, "sitemap.xml")
 }
 
+func buildRightsLink(config Config) string {
+	if config.BasePath != "" {
+		return fmt.Sprintf("%s/%s/%s", config.URL, config.BasePath, "sitemap.xml")
+	}
+	return fmt.Sprintf("%s/%s", config.URL, "sitemap.xml")
+}
+
 /*
  * RSS 2.0
  */
@@ -1141,7 +1150,7 @@ func generateRSSFeed(config Config, posts []Post) error {
 			Link:        buildRootLink(config),
 			Description: fmt.Sprintf("Latest posts from %s", config.BlogName),
 			Language:    config.Language,
-			Copyright:   config.Copyright,
+			Copyright:   config.Rights,
 			Generator:   "Draft/" + Version,
 			Items:       items,
 		},

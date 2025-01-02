@@ -76,7 +76,7 @@ Descriptions of each field in `config.yaml`:
 
 * **`blog_name`**: Blog name, displayed in metadata and header
 
-* **`copyright`**: Copyright notice, displayed in metadata and footer
+* **`rights`**: Copyright notice (e.g. "Copyright 2024-2025") or Copyleft notice
 
 * **`description`**: Brief description, one paragraph or so, used in link unfurls
 
@@ -174,7 +174,6 @@ Each variable in the template references a field in the `Config` structure and c
 | `{{ .Config.BlogName }}`              | `blog_name`                | The name of the blog                                  |
 | `{{ .Config.Description }}`           | `description`              | A brief description of the blog                       |
 | `{{ .Config.Email }}`                 | `email`                    | Contact email address for the blog                    |
-| `{{ .Config.Copyright }}`             | `copyright`                | Copyright information for the blog                    |
 | `{{ .Config.Language }}`              | `language`                 | Default language of the blog content (e.g., "en")     |
 | `{{ .Config.Locale }}`                | `locale`                   | Locale information for the blog (e.g., "en_US")       |
 | `{{ .Config.Lang }}`                  | `lang`                     | Language attribute for HTML documents                 |
@@ -186,6 +185,7 @@ Each variable in the template references a field in the `Config` structure and c
 | `{{ .Config.BasePath }}`              | `base_path`                | Base path for generated URLs                          |
 | `{{ .Config.Badges }}`                | `badges`                   | List of badges to display in the blog                 |
 | `{{ .Config.FediverseCreator }}`      | `fediverse_creator`        | Fediverse account of the blog creator                 |
+| `{{ .Config.Rights }}`                | `rights`                   | Copyright or Copyleft information for the blog        |
 
 ### Posts Variables
 
@@ -332,6 +332,20 @@ Fields:
 ## SVG Icons
 
 * Courtesy of [Lucide](https://lucide.dev/license)
+
+## Copyright
+
+The file `rights.html` is written with the contents of the template with the same name.
+
+You should customize this file for your own website. It contains a bunch of silly boilerplate out of the box.
+
+If you don't wish to explicitly state a copyright message, you can remove the `rights` field from your [configuration file](config.yaml).
+
+Refer to the [LICENSE](LICENSE) for this software's license details.
+
+### Copyleft
+
+If your work uses a Copyleft license, update the [shared.html](templates/shared.html) template by replacing `copyright.svg` with `copyleft.svg`.
 
 ## Prior Art
 
