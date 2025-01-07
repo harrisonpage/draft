@@ -21,7 +21,7 @@
                 Previous: <a style="text-decoration: none;" href="{{ .URL }}">{{ .FrontMatter.Title }}</a><br>
             {{- end }}
         {{- end }}
-        {{- if .NextPost.URL }}
+        {{- if .Post.URL }}
             {{- range .Post.Next }}
                 Next: <a style="text-decoration: none;" href="{{ .URL }}">{{ .FrontMatter.Title }}</a><br>
             {{- end }}

@@ -40,19 +40,11 @@ var ValidPostStatuses = map[PostStatus]struct{}{
 	Private: {},
 }
 
-func convertTagsToStrings(tags []Tag) []string {
-	tagStrings := make([]string, len(tags))
-	for i, tag := range tags {
-		tagStrings[i] = tag.TagName
-	}
-	return tagStrings
-}
-
 type FrontMatter struct {
 	Title       string   `yaml:"title"`
 	Link        string   `yaml:"link"`
 	Description string   `yaml:"description"`
-	Tags        string   `yaml:"tags"`
+	Tags        []string `yaml:"tags"`
 	Image       string   `yaml:"image"`
 	Alt         string   `yaml:"alt"`
 	Published   string   `yaml:"published"`
@@ -659,9 +651,9 @@ func generatePost(config Config, file fs.DirEntry) Post {
 		log.Fatalf("Validation error for file '%s': %v", filePath, err)
 	}
 
-	tagStrings := strings.Split(frontMatter.Tags, ",")
+	// make tag structs: tag name, URL
 	var tags []Tag
-	for _, tag := range tagStrings {
+	for _, tag := range frontMatter.Tags {
 		tag = strings.TrimSpace(tag)
 		tags = append(tags, Tag{TagName: tag, URL: buildTagLink(config, tag)})
 	}
@@ -968,6 +960,14 @@ type Document struct {
 	Text        string              // Entire document
 	Attributes  map[string][]string // Arbitrary attributes e.g. {"author": ["Harrison"]}
 	Hints       []string            // Hints provide best matches for search
+}
+
+func convertTagsToStrings(tags []Tag) []string {
+	tagStrings := make([]string, len(tags))
+	for i, tag := range tags {
+		tagStrings[i] = tag.TagName
+	}
+	return tagStrings
 }
 
 /*
