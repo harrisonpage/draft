@@ -62,122 +62,115 @@ func TestValidateHeaders(t *testing.T) {
 
 	tests := []struct {
 		name          string
-		headers       map[string]string
-		knownHeaders  map[string]bool
+		frontMatter   FrontMatter
 		filePath      string
 		shouldFail    bool
 		expectedError string
 	}{
-		// Valid case
+		// Test 1: Valid case
 		{
 			name: "All required headers present",
-			headers: map[string]string{
-				"title":       "My Post",
-				"link":        "https://example.com",
-				"published":   "2024-12-17",
-				"template":    "default",
-				"description": "A post description",
-				"status": "public",
+			frontMatter: FrontMatter{
+				Title:       "My Post",
+				Link:        "https://example.com",
+				Published:   "2024-12-17",
+				Template:    "default",
+				Description: "A post description",
+				Status:      "public",
 			},
-			knownHeaders: knownHeaders,
-			filePath:     "post1.yaml",
-			shouldFail:   false,
+			filePath:   "post1.yaml",
+			shouldFail: false,
 		},
-		// Missing multiple required headers
+		// Test 2: Missing multiple required headers
 		{
 			name: "Missing required headers",
-			headers: map[string]string{
-				"title": "My Post",
-				"link":  "https://example.com",
-				"status": "public",
+			frontMatter: FrontMatter{
+				Title:  "My Post",
+				Link:   "https://example.com",
+				Status: "public",
 			},
-			knownHeaders: knownHeaders,
-			filePath:     "post2.yaml",
-			shouldFail:   true,
+			filePath:   "post2.yaml",
+			shouldFail: true,
 			expectedError: `Post post2.yaml has the following issues:
 missing a required header: description
 missing a required header: published
 missing a required header: template`,
 		},
-		// Unknown header present and missing a required header
+		// Test 3: Unknown header present and missing a required header
 		{
 			name: "Unknown header present",
-			headers: map[string]string{
-				"title":     "My Post",
-				"link":      "https://example.com",
-				"published": "2024-12-17",
-				"unknown":   "invalid",
-				"status": "public",
+			frontMatter: FrontMatter{
+				Title:     "My Post",
+				Link:      "https://example.com",
+				Published: "2024-12-17",
+				Status:    "public",
 			},
-			knownHeaders: knownHeaders,
-			filePath:     "post3.yaml",
-			shouldFail:   true,
+			filePath:   "post3.yaml",
+			shouldFail: true,
 			expectedError: `Post post3.yaml has the following issues:
 missing a required header: description
-missing a required header: template
-contains unknown header: unknown`,
+missing a required header: template`,
 		},
-		// All required headers plus optional headers
+		// Test 4: All required headers plus optional headers
 		{
 			name: "Extra non-required headers",
-			headers: map[string]string{
-				"title":       "My Post",
-				"link":        "https://example.com",
-				"published":   "2024-12-17",
-				"template":    "default",
-				"description": "A description",
-				"tags":        "go, testing",
-				"favicon":     "icon.png",
-				"status": "public",
+			frontMatter: FrontMatter{
+				Title:       "My Post",
+				Link:        "https://example.com",
+				Published:   "2024-12-17",
+				Template:    "default",
+				Description: "A description",
+				Tags:        "go, testing",
+				Favicon:     "icon.png",
+				Status:      "public",
 			},
-			knownHeaders: knownHeaders,
-			filePath:     "post4.yaml",
-			shouldFail:   false,
+			filePath:   "post4.yaml",
+			shouldFail: false,
 		},
-		// Empty headers map
+		// Test 5: Empty headers
 		{
-			name:         "Empty headers",
-			headers:      map[string]string{},
-			knownHeaders: knownHeaders,
-			filePath:     "post5.yaml",
-			shouldFail:   true,
+			name:        "Empty headers",
+			frontMatter: FrontMatter{},
+			filePath:    "post5.yaml",
+			shouldFail:  true,
 			expectedError: `Post post5.yaml has the following issues:
 missing a required header: description
 missing a required header: link
 missing a required header: published
-missing a required header: status
 missing a required header: template
 missing a required header: title
 Invalid value for status: `,
 		},
-		// Empty knownHeaders map
+		// Test 6: Empty knownHeaders map
 		{
 			name: "Empty known headers",
-			headers: map[string]string{
-				"title": "My Post",
+			frontMatter: FrontMatter{
+				Title: "My Post",
 			},
-			knownHeaders: map[string]bool{},
-			filePath:     "post6.yaml",
-			shouldFail:   true,
+			filePath:   "post6.yaml",
+			shouldFail: true,
 			expectedError: `Post post6.yaml has the following issues:
-contains unknown header: title
+missing a required header: description
+missing a required header: link
+missing a required header: published
+missing a required header: template
 Invalid value for status: `,
 		},
 	}
 
-	for _, tt := range tests {
+	for i, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := validateHeaders(tt.headers, tt.knownHeaders, tt.filePath)
+			err := validateHeaders(tt.frontMatter, knownHeaders, tt.filePath)
 
 			if tt.shouldFail {
 				if err == nil {
-					t.Errorf("Expected an error but got nil for test case: %s", tt.name)
+					t.Errorf("Test #%d: Expected an error but got nil for test case: %s", 1+i, tt.name)
 				} else if tt.expectedError != "" && err.Error() != tt.expectedError {
-					t.Errorf("Unexpected error: got %q, want %q", err.Error(), tt.expectedError)
+					t.Errorf("Test #%d: Unexpected error: got %q, want %q", 1+i, err.Error(), tt.expectedError)
 				}
 			} else {
 				if err != nil {
-					t.Errorf("Unexpected error for test case %s: %v", tt.name, err)
+					t.Errorf("Test #%d: Unexpected error for test case %s: %v", 1+i, tt.name, err)
 				}
 			}
 		})

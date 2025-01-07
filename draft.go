@@ -65,6 +65,23 @@ var Headers = map[string]bool{
 	"image":       false,
 	"alt":         false,
 	"status":      false,
+	"related":     false,
+}
+
+type FrontMatter struct {
+	Title       string   `yaml:"title"`
+	Link        string   `yaml:"link"`
+	Description string   `yaml:"description"`
+	Tags        string   `yaml:"tags"`
+	Image       string   `yaml:"image"`
+	Alt         string   `yaml:"alt"`
+	Published   string   `yaml:"published"`
+	Template    string   `yaml:"template"`
+	Favicon     string   `yaml:"favicon"`
+	Author      string   `yaml:"author"`
+	Email       string   `yaml:"email"`
+	Status      string   `yaml:"status"`
+	Related     []string `yaml:"related"`
 }
 
 /*
@@ -239,31 +256,35 @@ func publish(md []byte) []byte {
 	return markdown.Render(doc, renderer)
 }
 
-func parseFileWithHeaders(filePath string) (map[string]string, string, string, error) {
+/*
+ * filePath = path to a post
+ *
+ * returns: frontMatter, content, text, err
+ */
+func parseFileWithHeaders(filePath string) (*FrontMatter, string, string, error) {
 	file, err := os.Open(filePath)
 	if err != nil {
 		return nil, "", "", fmt.Errorf("failed to open file '%s': %w", filePath, err)
 	}
 	defer file.Close()
 
-	headers := make(map[string]string)
+	var frontMatter FrontMatter
 	var contentBuilder strings.Builder
 	yip := false
 	i := 0
-
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
-		i += 1
 		line := scanner.Text()
+		fmt.Printf("LINE %v\n", line)
 		if line == "---" {
-			if i == 1 {
-				// skip first delimiter
-				continue
-			} else {
+			i++
+			if i == 2 {
 				// end of header metadata
 				yip = true
 				continue
 			}
+			// skip first delimiter
+			continue
 		}
 
 		if yip {
@@ -275,7 +296,35 @@ func parseFileWithHeaders(filePath string) (map[string]string, string, string, e
 			if len(parts) == 2 {
 				key := strings.TrimSpace(parts[0])
 				value := strings.TrimSpace(parts[1])
-				headers[key] = value
+
+				switch key {
+				case "title":
+					frontMatter.Title = value
+				case "link":
+					frontMatter.Link = value
+				case "description":
+					frontMatter.Description = value
+				case "tags":
+					frontMatter.Tags = value
+				case "image":
+					frontMatter.Image = value
+				case "alt":
+					frontMatter.Alt = value
+				case "published":
+					frontMatter.Published = value
+				case "template":
+					frontMatter.Template = value
+				case "favicon":
+					frontMatter.Favicon = value
+				case "author":
+					frontMatter.Author = value
+				case "email":
+					frontMatter.Email = value
+				case "status":
+					frontMatter.Status = value
+				case "related":
+					frontMatter.Related = append(frontMatter.Related, value)
+				}
 			}
 		}
 	}
@@ -284,12 +333,12 @@ func parseFileWithHeaders(filePath string) (map[string]string, string, string, e
 		return nil, "", "", fmt.Errorf("failed to read file '%s': %w", filePath, err)
 	}
 
-	// trim initial \n
+	// Trim initial \n
 	content := strings.TrimPrefix(contentBuilder.String(), "\n")
-	return headers, content, ToPlainText(content), nil
+	return &frontMatter, content, ToPlainText(content), nil
 }
 
-func validateHeaders(headers map[string]string, knownHeaders map[string]bool, filePath string) error {
+func validateHeaders(frontMatter FrontMatter, knownHeaders map[string]bool, filePath string) error {
 	var errorMessages []string
 
 	// Check for missing required headers in sorted order
@@ -302,22 +351,36 @@ func validateHeaders(headers map[string]string, knownHeaders map[string]bool, fi
 	sort.Strings(requiredHeaders)
 
 	for _, header := range requiredHeaders {
-		if _, exists := headers[header]; !exists {
-			errorMessages = append(errorMessages, fmt.Sprintf("missing a required header: %s", header))
+		switch header {
+		case "title":
+			if frontMatter.Title == "" {
+				errorMessages = append(errorMessages, fmt.Sprintf("missing a required header: %s", header))
+			}
+		case "link":
+			if frontMatter.Link == "" {
+				errorMessages = append(errorMessages, fmt.Sprintf("missing a required header: %s", header))
+			}
+		case "published":
+			if frontMatter.Published == "" {
+				errorMessages = append(errorMessages, fmt.Sprintf("missing a required header: %s", header))
+			}
+		case "template":
+			if frontMatter.Template == "" {
+				errorMessages = append(errorMessages, fmt.Sprintf("missing a required header: %s", header))
+			}
+		case "description":
+			if frontMatter.Description == "" {
+				errorMessages = append(errorMessages, fmt.Sprintf("missing a required header: %s", header))
+			}
 		}
 	}
 
-	// Check for unknown headers (order does not matter here)
-	for header := range headers {
-		if _, exists := knownHeaders[header]; !exists {
-			errorMessages = append(errorMessages, fmt.Sprintf("contains unknown header: %s", header))
-		}
+	// Validate "status" field
+	if _, valid := ValidPostStatuses[PostStatus(frontMatter.Status)]; !valid {
+		errorMessages = append(errorMessages, fmt.Sprintf("Invalid value for status: %s", frontMatter.Status))
 	}
 
-	if _, valid := ValidPostStatuses[PostStatus(headers["status"])]; !valid {
-		errorMessages = append(errorMessages, fmt.Sprintf("Invalid value for status: %s", headers["status"]))
-	}
-
+	// Aggregate and return errors
 	if len(errorMessages) > 0 {
 		return fmt.Errorf("Post %s has the following issues:\n%s", filePath, strings.Join(errorMessages, "\n"))
 	}
@@ -662,49 +725,51 @@ func processMarkdownFiles(config Config) {
 
 func generatePost(config Config, file fs.DirEntry) Post {
 	filePath := filepath.Join(config.InputDir, file.Name())
-	headers, content, text, err := parseFileWithHeaders(filePath)
+	frontMatter, content, text, err := parseFileWithHeaders(filePath)
+	fmt.Printf("CONTENT %v", content)
+
 	if err != nil {
 		log.Fatalf("Failed to process file '%s': %v", filePath, err)
 	}
 
-	if err := validateHeaders(headers, Headers, filePath); err != nil {
+	if err := validateHeaders(*frontMatter, Headers, filePath); err != nil {
 		log.Fatalf("Validation error for file '%s': %v", filePath, err)
 	}
 
-	if err := validateLinkName(headers["link"]); err != nil {
+	if err := validateLinkName(frontMatter.Link); err != nil {
 		log.Fatalf("Validation error for file '%s': %v", filePath, err)
 	}
 
-	tagStrings := strings.Split(headers["tags"], ",")
+	tagStrings := strings.Split(frontMatter.Tags, ",")
 	var tags []Tag
 	for _, tag := range tagStrings {
 		tag = strings.TrimSpace(tag)
 		tags = append(tags, Tag{TagName: tag, URL: buildTagLink(config, tag)})
 	}
 
-	pubTime, err := time.Parse(time.RFC3339, headers["published"])
+	pubTime, err := time.Parse(time.RFC3339, frontMatter.Published)
 	if err != nil {
 		log.Fatalf("Error parsing date for %s: %v", filePath, err)
 	}
 
 	post := Post{
-		Title:       headers["title"],
-		Author:      headers["author"],
-		Email:       headers["email"],
-		Link:        headers["link"],
-		URL:         buildPostLink(config, headers["link"]),
+		Title:       frontMatter.Title,
+		Author:      frontMatter.Author,
+		Email:       frontMatter.Email,
+		Link:        frontMatter.Link,
+		URL:         buildPostLink(config, frontMatter.Link),
 		HTML:        content,
 		Text:        text,
-		Template:    headers["template"],
-		Published:   headers["published"],
+		Template:    frontMatter.Template,
+		Published:   frontMatter.Published,
 		PubDate:     pubTime.Format("02-Jan-2006"),
 		PubTime:     pubTime,
-		Description: headers["description"],
+		Description: frontMatter.Description,
 		Tags:        tags,
-		Image:       headers["image"],
-		Alt:         headers["alt"],
-		Favicon:     headers["favicon"],
-		Status:      headers["status"],
+		Image:       frontMatter.Image,
+		Alt:         frontMatter.Alt,
+		Favicon:     frontMatter.Favicon,
+		Status:      frontMatter.Status,
 	}
 
 	return post
