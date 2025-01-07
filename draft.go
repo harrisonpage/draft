@@ -166,24 +166,20 @@ type Tag struct {
 	URL     string
 }
 
+type Related struct {
+	Link string
+	URL  string
+}
+
 type Post struct {
-	Title       string
-	Author      string
-	Email       string
-	Link        string
+	FrontMatter FrontMatter
 	URL         string
-	Template    string
 	HTML        string
 	Text        string    // Plaintext representation
-	Published   string    // ISO 8601 AKA time.RFC3339 e.g. 2025-01-15T06:29:00-08:00
 	PubTime     time.Time // parsed version of Published date
 	PubDate     string    // 15-Jan-2025
-	Description string
 	Tags        []Tag
-	Image       string
-	Alt         string
-	Favicon     string
-	Status      string
+	Related     []Related
 }
 
 type RSSFeed struct {
@@ -275,7 +271,6 @@ func parseFileWithHeaders(filePath string) (*FrontMatter, string, string, error)
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
 		line := scanner.Text()
-		fmt.Printf("LINE %v\n", line)
 		if line == "---" {
 			i++
 			if i == 2 {
@@ -562,11 +557,11 @@ func processMarkdownFiles(config Config) {
 		Rights:  buildRightsLink(config),
 	}
 
-	namespace := make(map[string]bool)
-
 	/*
 	 * Pre-process all posts so we can show back/next
 	 */
+
+	postIndex := make(map[string]Post)
 	var post Post
 	for _, file := range files {
 		if file.IsDir() {
@@ -577,19 +572,19 @@ func processMarkdownFiles(config Config) {
 		/*
 		 * Skip private posts
 		 */
-		status := PostStatus(post.Status)
+		status := PostStatus(post.FrontMatter.Status)
 		if status == Private {
-			fmt.Printf("📕 Post: %s [private] skipping...\n", post.Link)
+			fmt.Printf("📕 Post: %s [private] skipping...\n", post.FrontMatter.Link)
 			continue
 		}
 
 		/*
 		 * Check for duplicate links in posts
 		 */
-		if _, ok := namespace[post.Link]; ok {
-			log.Fatalf("Duplicate link in post %v", post.Link)
+		if _, ok := postIndex[post.FrontMatter.Link]; ok {
+			log.Fatalf("Duplicate link in post %v", post.FrontMatter.Link)
 		} else {
-			namespace[post.Link] = true
+			postIndex[post.FrontMatter.Link] = post
 		}
 
 		posts = append(posts, post)
@@ -603,10 +598,8 @@ func processMarkdownFiles(config Config) {
 	 * Check for duplicate links across pages
 	 */
 	for _, page := range config.Pages {
-		if _, ok := namespace[page.Link]; ok {
+		if _, ok := postIndex[page.Link]; ok {
 			log.Fatalf("Duplicate link in page %v", page.Link)
-		} else {
-			namespace[page.Link] = true
 		}
 	}
 
@@ -619,13 +612,13 @@ func processMarkdownFiles(config Config) {
 	 * Convert each post from Markdown to HTML
 	 */
 	for i, post := range posts {
-		templatePath := filepath.Join(config.TemplatesDir, post.Template)
+		templatePath := filepath.Join(config.TemplatesDir, post.FrontMatter.Template)
 		tmpl, err := template.ParseFiles(templatePath, filepath.Join(config.TemplatesDir, "shared.html"))
 		if err != nil {
-			log.Fatalf("Failed to parse template '%s': %v", post.Template, err)
+			log.Fatalf("Failed to parse template '%s': %v", post.FrontMatter.Template, err)
 		}
 		labels := Labels{
-			Title: post.Title,
+			Title: post.FrontMatter.Title,
 		}
 
 		/*
@@ -643,10 +636,10 @@ func processMarkdownFiles(config Config) {
 		}
 
 		unfurl := Unfurl{
-			Title:       post.Title,
+			Title:       post.FrontMatter.Title,
 			URL:         post.URL,
-			Author:      post.Author,
-			Description: post.Description,
+			Author:      post.FrontMatter.Author,
+			Description: post.FrontMatter.Description,
 			SiteName:    config.BlogName,
 			Tags:        strings.Join(tagNames, ","),
 			Locale:      config.Locale,
@@ -692,7 +685,7 @@ func processMarkdownFiles(config Config) {
 		/*
 		 * Write post to disk with folder name specified as `link` in metadata
 		 */
-		postDir := filepath.Join(config.OutputDir, post.Link)
+		postDir := filepath.Join(config.OutputDir, post.FrontMatter.Link)
 		if err := os.MkdirAll(postDir, 0755); err != nil {
 			log.Fatalf("Failed to create directory '%s': %v", postDir, err)
 		}
@@ -708,7 +701,7 @@ func processMarkdownFiles(config Config) {
 			log.Fatalf("Failed to execute template for file '%s': %v", outputFilePath, err)
 		}
 
-		fmt.Printf("📘 Post: \"%s\" by %s\n", post.Link, post.Author)
+		fmt.Printf("📘 Post: \"%s\" by %s\n", post.FrontMatter.Link, post.FrontMatter.Author)
 	}
 
 	generateIndexHTML(config, posts, links, badges, now)
@@ -726,7 +719,6 @@ func processMarkdownFiles(config Config) {
 func generatePost(config Config, file fs.DirEntry) Post {
 	filePath := filepath.Join(config.InputDir, file.Name())
 	frontMatter, content, text, err := parseFileWithHeaders(filePath)
-	fmt.Printf("CONTENT %v", content)
 
 	if err != nil {
 		log.Fatalf("Failed to process file '%s': %v", filePath, err)
@@ -747,29 +739,25 @@ func generatePost(config Config, file fs.DirEntry) Post {
 		tags = append(tags, Tag{TagName: tag, URL: buildTagLink(config, tag)})
 	}
 
+	var related []Related
+	for _, link := range frontMatter.Related {
+		related = append(related, Related{Link: link, URL: buildPostLink(config, link)})
+	}
+
 	pubTime, err := time.Parse(time.RFC3339, frontMatter.Published)
 	if err != nil {
 		log.Fatalf("Error parsing date for %s: %v", filePath, err)
 	}
 
 	post := Post{
-		Title:       frontMatter.Title,
-		Author:      frontMatter.Author,
-		Email:       frontMatter.Email,
-		Link:        frontMatter.Link,
+		FrontMatter: *frontMatter,
 		URL:         buildPostLink(config, frontMatter.Link),
 		HTML:        content,
 		Text:        text,
-		Template:    frontMatter.Template,
-		Published:   frontMatter.Published,
 		PubDate:     pubTime.Format("02-Jan-2006"),
 		PubTime:     pubTime,
-		Description: frontMatter.Description,
 		Tags:        tags,
-		Image:       frontMatter.Image,
-		Alt:         frontMatter.Alt,
-		Favicon:     frontMatter.Favicon,
-		Status:      frontMatter.Status,
+		Related:     related,
 	}
 
 	return post
@@ -1009,7 +997,7 @@ func generateSitemap(config Config, posts []Post) {
 	// Posts
 	for _, post := range posts {
 		urls = append(urls, URL{
-			Loc:        buildPostLink(config, post.Link),
+			Loc:        buildPostLink(config, post.FrontMatter.Link),
 			LastMod:    post.PubTime.Format(time.RFC3339), // ISO 8601
 			ChangeFreq: "weekly",
 			Priority:   "0.9",
@@ -1080,10 +1068,10 @@ func generateSluggoExport(config Config, posts []Post) {
 	for _, post := range posts {
 		doc := Document{
 			ID:          post.URL,
-			Title:       post.Title,
-			Description: post.Description,
+			Title:       post.FrontMatter.Title,
+			Description: post.FrontMatter.Description,
 			Text:        post.Text,
-			Attributes:  map[string][]string{"author": {post.Author}, "tags": convertTagsToStrings(post.Tags)},
+			Attributes:  map[string][]string{"author": {post.FrontMatter.Author}, "tags": convertTagsToStrings(post.Tags)},
 			Hints:       []string{},
 		}
 		payload.Documents = append(payload.Documents, doc)
@@ -1200,11 +1188,11 @@ func generateRSSFeed(config Config, posts []Post) error {
 	items := make([]RSSItem, len(posts))
 	for i, post := range posts {
 		items[i] = RSSItem{
-			Title:       post.Title,
+			Title:       post.FrontMatter.Title,
 			Link:        post.URL,
 			Guid:        post.URL,
-			Description: post.Description,
-			Author:      post.Author,
+			Description: post.FrontMatter.Description,
+			Author:      post.FrontMatter.Author,
 			PubDate:     post.PubTime.Format(time.RFC1123Z), // RFC 1123
 		}
 	}
@@ -1281,15 +1269,15 @@ func generateAtomFeed(config Config, posts []Post) error {
 	entries := make([]AtomEntry, len(posts))
 	for i, post := range posts {
 		entries[i] = AtomEntry{
-			Title: post.Title,
+			Title: post.FrontMatter.Title,
 			Link: []AtomLink{
 				{Href: post.URL},
 			},
 			Id:        post.URL,
 			Published: post.PubTime.Format(time.RFC3339),
 			Updated:   post.PubTime.Format(time.RFC3339),
-			Summary:   post.Description,
-			Author:    AtomAuthor{Name: post.Author, Email: post.Email},
+			Summary:   post.FrontMatter.Description,
+			Author:    AtomAuthor{Name: post.FrontMatter.Author, Email: post.FrontMatter.Email},
 		}
 	}
 

@@ -59,10 +59,10 @@
         <a style="text-decoration: none;" href="/search/" title="Search">{{ index $.Badges "search.svg" }}</a>
         {{- end }}
         {{- if .PreviousPost.URL }}
-        <a style="text-decoration: none;" href="{{ .PreviousPost.URL }}" title="Previous: {{ .PreviousPost.Title }}">{{ index $.Badges "back.svg" }}</a>
+        <a style="text-decoration: none;" href="{{ .PreviousPost.URL }}" title="Previous: {{ .PreviousPost.FrontMatter.Title }}">{{ index $.Badges "back.svg" }}</a>
         {{- end }}
         {{- if .NextPost.URL }}
-        <a style="text-decoration: none;" href="{{ .NextPost.URL }}" title="Next: {{ .NextPost.Title }}">{{ index $.Badges "next.svg" }}</a>
+        <a style="text-decoration: none;" href="{{ .NextPost.URL }}" title="Next: {{ .NextPost.FrontMatter.Title }}">{{ index $.Badges "next.svg" }}</a>
         {{- end }}
         {{- if .Config.Email }}
         <a style="text-decoration: none;" href="mailto:{{ .Config.Email }}">{{ index $.Badges "email.svg" }}</a>

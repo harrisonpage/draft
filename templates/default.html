@@ -3,24 +3,35 @@
 {{ template "header" . }}
 <body>
     <header>
-        <h1>{{ .Post.Title }}</h1>
-        <p>Author: <a href="mailto:{{ .Post.Email}}">{{ .Post.Author }}</a></p>
-        <p>Published: {{ .Post.Published }}</p>
-        {{- if .Tags }}<p>
+        <h1>{{ .Post.FrontMatter.Title }}</h1>
+    </header>
+    <main>
+        {{- if .Post.FrontMatter.Image }}
+        <img {{ if .Post.FrontMatter.Alt }}alt="{{ .Post.FrontMatter.Alt }}" {{ end }}src="{{ .Post.FrontMatter.Image }}">
+        {{- end }}
+        {{ .Content }}
+        <div>{{ .Related }}</div>
+    </main>
+    ❖
+    <div>
+        Author: <a href="mailto:{{ .Post.FrontMatter.Email}}">{{ .Post.FrontMatter.Author }}</a><br>
+        Published: {{ .Post.FrontMatter.Published }}<br>
+        {{- if .Tags }}
         Tags:
             {{ range .Tags }}
                 🏷️ <a href="{{ .URL }}">{{ .TagName }}</a>
             {{ end }}
+        <br>
         {{ else }}
-        </p>{{ end }}
-        <p><a href="../">{{ .Config.BackLabel }}</a></p>
-    </header>
-    <main>
-        {{- if .Post.Image }}
-        <img {{ if .Post.Alt }}alt="{{ .Post.Alt }}" {{ end }}src="{{ .Post.Image }}">
         {{- end }}
-        {{ .Content }}
-    </main>
+        <a href="../">{{ .Config.BackLabel }}</a><br>
+        {{- if .Related }}
+            Related: <ul>
+            {{ range .Related }}
+            <li> <a href="{{ .URL }}">{{ .Link }}</a> </li>
+            </ul>{{ end }}
+        {{- end }}
+    </div>
     {{ template "footer" . }}
 </body>
 </html>

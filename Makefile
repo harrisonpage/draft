@@ -3,7 +3,7 @@ OUTPUT = draft
 all: build
 
 test:
-	go test
+	go vet && go test
 
 build:
 ifndef DRAFT_BUILD_VERSION

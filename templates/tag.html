@@ -11,11 +11,11 @@
         <ul>
         {{ range .Value }}
             <li>
-                <h2><span>{{ .Favicon }}</span> <a href="{{ .URL }}">{{ .Title }}</a></h2>
-                <p>{{ .Description }}</p>
-                <p><strong>Published:</strong> {{ .Published }}</p>
-                {{- if .Image }}
-                <p><img src="{{ .Image }}" alt="{{ .Title }}" style="max-width:200px;"></p>
+                <h2><span>{{ .FrontMatter.Favicon }}</span> <a href="{{ .URL }}">{{ .FrontMatter.Title }}</a></h2>
+                <p>{{ .FrontMatter.Description }}</p>
+                <p><strong>Published:</strong> {{ .FrontMatter.Published }}</p>
+                {{- if .FrontMatter.Image }}
+                <p><img src="{{ .FrontMatter.Image }}" alt="{{ .FrontMatter.Title }}" style="max-width:200px;"></p>
                 {{- end }}
             </li>
         {{ end }}
