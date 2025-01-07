@@ -61,6 +61,7 @@ var Headers = map[string]bool{
 	"tags":        false,
 	"favicon":     false,
 	"author":      false,
+	"email":       false,
 	"image":       false,
 	"alt":         false,
 	"status":      false,
