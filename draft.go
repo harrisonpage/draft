@@ -155,6 +155,8 @@ type Post struct {
 	PubDate     string    // 15-Jan-2025
 	Tags        []Tag
 	Related     []Post
+	Previous    []Post
+	Next        []Post
 }
 
 type RSSFeed struct {
@@ -576,17 +578,11 @@ func processPosts(config Config) {
 		/*
 		 * Determine previous/next posts
 		 */
-		var previousPost Post
 		if i != len(posts)-1 {
-			previousPost = posts[i+1]
-		} else {
-			previousPost = Post{}
+			post.Previous = append(post.Previous, posts[i+1])
 		}
-		var nextPost Post
 		if i > 0 {
-			nextPost = posts[i-1]
-		} else {
-			nextPost = Post{}
+			post.Next = append(post.Next, posts[i-1])
 		}
 
 		// transform list of related posts by label to a `Related` struct
@@ -600,19 +596,17 @@ func processPosts(config Config) {
 		 * Template variables
 		 */
 		data := map[string]interface{}{
-			"Config":       config,
-			"Labels":       labels,
-			"Unfurl":       unfurl,
-			"Post":         post,
-			"Content":      template.HTML(htmlContent),
-			"Tags":         tags,
-			"Version":      Version,
-			"Now":          now,
-			"Canonical":    post.URL,
-			"Links":        links,
-			"Badges":       badges,
-			"PreviousPost": previousPost,
-			"NextPost":     nextPost,
+			"Config":    config,
+			"Labels":    labels,
+			"Unfurl":    unfurl,
+			"Post":      post,
+			"Content":   template.HTML(htmlContent),
+			"Tags":      tags,
+			"Version":   Version,
+			"Now":       now,
+			"Canonical": post.URL,
+			"Links":     links,
+			"Badges":    badges,
 		}
 
 		/*

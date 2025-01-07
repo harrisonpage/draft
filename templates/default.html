@@ -15,7 +15,17 @@
     <div>–</div>
     <div style="font-size: 85%;">
         Author: <a href="mailto:{{ .Post.FrontMatter.Email}}">{{ .Post.FrontMatter.Author }}</a><br>
-        Published: {{ .Post.FrontMatter.Published }}<br>
+        Date: {{ .Post.FrontMatter.Published }}<br>
+        {{- if .Post.Previous }}
+            {{- range .Post.Previous }}
+                Previous: <a style="text-decoration: none;" href="{{ .URL }}">{{ .FrontMatter.Title }}</a><br>
+            {{- end }}
+        {{- end }}
+        {{- if .NextPost.URL }}
+            {{- range .Post.Next }}
+                Next: <a style="text-decoration: none;" href="{{ .URL }}">{{ .FrontMatter.Title }}</a><br>
+            {{- end }}
+        {{- end }}
         {{- if .Post.Related }}
             Related Posts: <ul>
             {{ range .Post.Related }}
@@ -34,4 +44,3 @@
     {{ template "footer" . }}
 </body>
 </html>
-
