@@ -14,7 +14,6 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
-	"sort"
 	"strings"
 	"time"
 
@@ -47,25 +46,6 @@ func convertTagsToStrings(tags []Tag) []string {
 		tagStrings[i] = tag.TagName
 	}
 	return tagStrings
-}
-
-/*
- * List of post headers and whether they are required
- */
-var Headers = map[string]bool{
-	"title":       true,
-	"link":        true,
-	"published":   true,
-	"template":    true,
-	"description": true,
-	"tags":        false,
-	"favicon":     false,
-	"author":      false,
-	"email":       false,
-	"image":       false,
-	"alt":         false,
-	"status":      false,
-	"related":     false,
 }
 
 type FrontMatter struct {
@@ -166,11 +146,6 @@ type Tag struct {
 	URL     string
 }
 
-type Related struct {
-	Link string
-	URL  string
-}
-
 type Post struct {
 	FrontMatter FrontMatter
 	URL         string
@@ -179,7 +154,7 @@ type Post struct {
 	PubTime     time.Time // parsed version of Published date
 	PubDate     string    // 15-Jan-2025
 	Tags        []Tag
-	Related     []Related
+	Related     []Post
 }
 
 type RSSFeed struct {
@@ -266,61 +241,23 @@ func parseFileWithHeaders(filePath string) (*FrontMatter, string, string, error)
 
 	var frontMatter FrontMatter
 	var contentBuilder strings.Builder
-	yip := false
-	i := 0
+
+	// Read the file and extract front matter and content
+	var frontMatterBuilder strings.Builder
+	inFrontMatter := false
 	scanner := bufio.NewScanner(file)
+
 	for scanner.Scan() {
 		line := scanner.Text()
 		if line == "---" {
-			i++
-			if i == 2 {
-				// end of header metadata
-				yip = true
-				continue
-			}
-			// skip first delimiter
+			inFrontMatter = !inFrontMatter
 			continue
 		}
 
-		if yip {
-			// document body
-			contentBuilder.WriteString(line + "\n")
+		if inFrontMatter {
+			frontMatterBuilder.WriteString(line + "\n")
 		} else {
-			// document header
-			parts := strings.SplitN(line, ":", 2)
-			if len(parts) == 2 {
-				key := strings.TrimSpace(parts[0])
-				value := strings.TrimSpace(parts[1])
-
-				switch key {
-				case "title":
-					frontMatter.Title = value
-				case "link":
-					frontMatter.Link = value
-				case "description":
-					frontMatter.Description = value
-				case "tags":
-					frontMatter.Tags = value
-				case "image":
-					frontMatter.Image = value
-				case "alt":
-					frontMatter.Alt = value
-				case "published":
-					frontMatter.Published = value
-				case "template":
-					frontMatter.Template = value
-				case "favicon":
-					frontMatter.Favicon = value
-				case "author":
-					frontMatter.Author = value
-				case "email":
-					frontMatter.Email = value
-				case "status":
-					frontMatter.Status = value
-				case "related":
-					frontMatter.Related = append(frontMatter.Related, value)
-				}
-			}
+			contentBuilder.WriteString(line + "\n")
 		}
 	}
 
@@ -328,46 +265,35 @@ func parseFileWithHeaders(filePath string) (*FrontMatter, string, string, error)
 		return nil, "", "", fmt.Errorf("failed to read file '%s': %w", filePath, err)
 	}
 
-	// Trim initial \n
+	// Parse front matter as YAML
+	yamlContent := frontMatterBuilder.String()
+	if err := yaml.Unmarshal([]byte(yamlContent), &frontMatter); err != nil {
+		return nil, "", "", fmt.Errorf("failed to parse front matter: %w\nYAML:\n%s", err, yamlContent)
+	}
+
+	// Trim leading newline from content
 	content := strings.TrimPrefix(contentBuilder.String(), "\n")
 	return &frontMatter, content, ToPlainText(content), nil
 }
 
-func validateHeaders(frontMatter FrontMatter, knownHeaders map[string]bool, filePath string) error {
+func validateHeaders(frontMatter FrontMatter, filePath string) error {
 	var errorMessages []string
 
-	// Check for missing required headers in sorted order
-	var requiredHeaders []string
-	for header, required := range knownHeaders {
-		if required {
-			requiredHeaders = append(requiredHeaders, header)
-		}
+	// Check for missing required headers
+	if frontMatter.Title == "" {
+		errorMessages = append(errorMessages, "missing a required header: title")
 	}
-	sort.Strings(requiredHeaders)
-
-	for _, header := range requiredHeaders {
-		switch header {
-		case "title":
-			if frontMatter.Title == "" {
-				errorMessages = append(errorMessages, fmt.Sprintf("missing a required header: %s", header))
-			}
-		case "link":
-			if frontMatter.Link == "" {
-				errorMessages = append(errorMessages, fmt.Sprintf("missing a required header: %s", header))
-			}
-		case "published":
-			if frontMatter.Published == "" {
-				errorMessages = append(errorMessages, fmt.Sprintf("missing a required header: %s", header))
-			}
-		case "template":
-			if frontMatter.Template == "" {
-				errorMessages = append(errorMessages, fmt.Sprintf("missing a required header: %s", header))
-			}
-		case "description":
-			if frontMatter.Description == "" {
-				errorMessages = append(errorMessages, fmt.Sprintf("missing a required header: %s", header))
-			}
-		}
+	if frontMatter.Link == "" {
+		errorMessages = append(errorMessages, "missing a required header: link")
+	}
+	if frontMatter.Published == "" {
+		errorMessages = append(errorMessages, "missing a required header: published")
+	}
+	if frontMatter.Template == "" {
+		errorMessages = append(errorMessages, "missing a required header: template")
+	}
+	if frontMatter.Description == "" {
+		errorMessages = append(errorMessages, "missing a required header: description")
 	}
 
 	// Validate "status" field
@@ -495,7 +421,7 @@ func ToPlainText(md string) string {
 	return renderer.buf.String()
 }
 
-func processMarkdownFiles(config Config) {
+func processPosts(config Config) {
 	/*
 	 * Load badges into map: filename => SVG
 	 */
@@ -663,6 +589,13 @@ func processMarkdownFiles(config Config) {
 			nextPost = Post{}
 		}
 
+		// transform list of related posts by label to a `Related` struct
+		var related []Post
+		for _, link := range post.FrontMatter.Related {
+			related = append(related, postIndex[link])
+		}
+		post.Related = related
+
 		/*
 		 * Template variables
 		 */
@@ -724,7 +657,7 @@ func generatePost(config Config, file fs.DirEntry) Post {
 		log.Fatalf("Failed to process file '%s': %v", filePath, err)
 	}
 
-	if err := validateHeaders(*frontMatter, Headers, filePath); err != nil {
+	if err := validateHeaders(*frontMatter, filePath); err != nil {
 		log.Fatalf("Validation error for file '%s': %v", filePath, err)
 	}
 
@@ -737,11 +670,6 @@ func generatePost(config Config, file fs.DirEntry) Post {
 	for _, tag := range tagStrings {
 		tag = strings.TrimSpace(tag)
 		tags = append(tags, Tag{TagName: tag, URL: buildTagLink(config, tag)})
-	}
-
-	var related []Related
-	for _, link := range frontMatter.Related {
-		related = append(related, Related{Link: link, URL: buildPostLink(config, link)})
 	}
 
 	pubTime, err := time.Parse(time.RFC3339, frontMatter.Published)
@@ -757,7 +685,6 @@ func generatePost(config Config, file fs.DirEntry) Post {
 		PubDate:     pubTime.Format("02-Jan-2006"),
 		PubTime:     pubTime,
 		Tags:        tags,
-		Related:     related,
 	}
 
 	return post
@@ -1332,5 +1259,5 @@ func main() {
 		os.Exit(1)
 	}
 
-	processMarkdownFiles(*config)
+	processPosts(*config)
 }

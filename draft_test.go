@@ -1,7 +1,11 @@
 package main
 
 import (
+	"sort"
+	"strings"
 	"testing"
+
+	"github.com/google/go-cmp/cmp"
 )
 
 func TestValidateLinkName(t *testing.T) {
@@ -23,7 +27,7 @@ func TestValidateLinkName(t *testing.T) {
 		{"LeadingWhitespace", "  leading-space", true},
 		{"TrailingWhitespace", "trailing-space  ", true},
 		{"ContainsNewline", "newline\n", true},
-		{"TooLongName", "a" + makeString(300), true}, // Too long input
+		{"TooLongName", "a" + makeFakeString(300), true}, // Too long input
 	}
 
 	for _, tt := range tests {
@@ -38,8 +42,7 @@ func TestValidateLinkName(t *testing.T) {
 	}
 }
 
-// makeString generates a string of 'n' 'a' characters for testing long inputs.
-func makeString(n int) string {
+func makeFakeString(n int) string {
 	result := make([]rune, n)
 	for i := 0; i < n; i++ {
 		result[i] = 'a'
@@ -47,19 +50,13 @@ func makeString(n int) string {
 	return string(result)
 }
 
-func TestValidateHeaders(t *testing.T) {
-	knownHeaders := map[string]bool{
-		"title":       true,
-		"link":        true,
-		"published":   true,
-		"template":    true,
-		"description": true,
-		"tags":        false,
-		"favicon":     false,
-		"author":      false,
-		"status":      true,
-	}
+func sorted(input string) string {
+	lines := strings.Split(input, "\n")
+	sort.Strings(lines)
+	return strings.Join(lines, "\n")
+}
 
+func TestValidateHeaders(t *testing.T) {
 	tests := []struct {
 		name          string
 		frontMatter   FrontMatter
@@ -160,13 +157,17 @@ Invalid value for status: `,
 
 	for i, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := validateHeaders(tt.frontMatter, knownHeaders, tt.filePath)
+			err := validateHeaders(tt.frontMatter, tt.filePath)
 
 			if tt.shouldFail {
 				if err == nil {
 					t.Errorf("Test #%d: Expected an error but got nil for test case: %s", 1+i, tt.name)
-				} else if tt.expectedError != "" && err.Error() != tt.expectedError {
-					t.Errorf("Test #%d: Unexpected error: got %q, want %q", 1+i, err.Error(), tt.expectedError)
+				} else {
+					expected := sorted(tt.expectedError)
+					got := sorted(err.Error())
+					if expected != "" && expected != got {
+						t.Errorf("Test #%d: Header mismatch:\n%s", 1+i, cmp.Diff(expected, got))
+					}
 				}
 			} else {
 				if err != nil {

@@ -12,10 +12,16 @@
         {{ .Content }}
         <div>{{ .Related }}</div>
     </main>
-    ❖
-    <div>
+    <div>–</div>
+    <div style="font-size: 85%;">
         Author: <a href="mailto:{{ .Post.FrontMatter.Email}}">{{ .Post.FrontMatter.Author }}</a><br>
         Published: {{ .Post.FrontMatter.Published }}<br>
+        {{- if .Post.Related }}
+            Related Posts: <ul>
+            {{ range .Post.Related }}
+            <li> <a href="{{ .URL }}">{{ .FrontMatter.Title }}</a> </li>
+            {{ end }}</ul>
+        {{- end }}
         {{- if .Tags }}
         Tags:
             {{ range .Tags }}
@@ -23,13 +29,6 @@
             {{ end }}
         <br>
         {{ else }}
-        {{- end }}
-        <a href="../">{{ .Config.BackLabel }}</a><br>
-        {{- if .Related }}
-            Related: <ul>
-            {{ range .Related }}
-            <li> <a href="{{ .URL }}">{{ .Link }}</a> </li>
-            </ul>{{ end }}
         {{- end }}
     </div>
     {{ template "footer" . }}
